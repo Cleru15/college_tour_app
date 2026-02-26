@@ -3,6 +3,8 @@
 
 #include <QApplication>
 
+// I GUESS BRO - BRANDON HO
+
 // Creates the Qt app, shows the main window, and starts the event loop.
 int main(int argc, char *argv[])
 {
