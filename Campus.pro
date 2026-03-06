@@ -2,9 +2,9 @@
 # It lists which Qt modules we use (widgets for UI, sql for database, quick if needed),
 # and which source/header/ui files get compiled into the application.
 
-QT       += core gui \
-    quick
-QT       += sql
+QT += core gui widgets sql
+
+CONFIG += c++17
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
