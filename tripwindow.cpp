@@ -334,7 +334,67 @@ void tripWindow::nearestStepRecursive(const QString &current, QSet<QString> &vis
  */
 void tripWindow::planExactDp()
 {
-    // (implementation unchanged)
+    // Nodes: start first, then the rest
+    m_nodes.clear();
+    m_nodes.push_back(m_start);
+    for (const QString &c : m_candidates)
+    {
+        if (c != m_start)
+            m_nodes.push_back(c);
+    }
+
+    const int n = static_cast<int>(m_nodes.size());
+    if (n <= 1)
+    {
+        m_route = {m_start};
+        m_legs.clear();
+        return;
+    }
+
+    // Build adjacency as a vector of vector-backed BSTs (VectorBst).
+    // Each BST holds edges (destinationIndex -> miles) and is built with recursive insert().
+    m_adj.assign(n, VectorBst{});
+    for (int i = 0; i < n; ++i)
+    {
+        m_adj[static_cast<size_t>(i)].clear();
+        for (int j = 0; j < n; ++j)
+        {
+            const double d = dist(m_nodes[i], m_nodes[j]);
+            if (d < BIG / 2)
+                m_adj[static_cast<size_t>(i)].insert(j, d);
+        }
+    }
+
+    const int masks = 1 << n;
+    m_allMask = masks - 1;
+    m_memo.assign(masks, std::vector<double>(n, -1.0));
+    m_next.assign(masks, std::vector<int>(n, -1));
+
+    // Start recursion from start node only visited
+    (void)tspRecursive(1, 0);
+
+    // Reconstruct route
+    m_route.clear();
+    m_legs.clear();
+
+    int mask = 1;
+    int last = 0;
+    m_route.push_back(m_nodes[0]);
+
+    while (mask != m_allMask)
+    {
+        const int nxt = m_next[mask][last];
+        if (nxt < 0)
+            break;
+
+        m_route.push_back(m_nodes[nxt]);
+        double w = BIG;
+        (void)m_adj[static_cast<size_t>(last)].find(nxt, w);
+        m_legs.push_back(w);
+
+        mask |= (1 << nxt);
+        last = nxt;
+    }
 }
 
 /*
@@ -344,7 +404,44 @@ void tripWindow::planExactDp()
  */
 double tripWindow::tspRecursive(int mask, int last)
 {
-    // (implementation unchanged)
+    if (mask == m_allMask)
+        return 0.0;
+
+    double &memo = m_memo[mask][last];
+    if (memo >= 0.0)
+        return memo;
+
+    double best = BIG;
+    int bestNext = -1;
+
+    m_adj[static_cast<size_t>(last)].resetQueueInOrder();
+
+    while (!m_adj[static_cast<size_t>(last)].queueEmpty())
+    {
+        const auto edge = m_adj[static_cast<size_t>(last)].queuePop();
+        const int nxt = edge.first;
+        const double w = edge.second;
+
+        if (nxt < 0)
+            break;
+
+        if (mask & (1 << nxt))
+            continue;
+
+        if (w >= BIG/2)
+            continue;
+
+        const double cand = w + tspRecursive(mask | (1 << nxt), nxt);
+        if (cand < best)
+        {
+            best = cand;
+            bestNext = nxt;
+        }
+    }
+
+    m_next[mask][last] = bestNext;
+    memo = best;
+    return memo;
 }
 
 /*
