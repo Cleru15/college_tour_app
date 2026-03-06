@@ -1,3 +1,20 @@
+/**
+ * @file customtripwindow.cpp
+ * @brief Implements the CustomTripWindow class.
+ *
+ * Loads campus data and builds a checklist so the user can select
+ * specific campuses to include in their trip.
+ */
+
+// CustomTripWindow allows the user to create a custom college tour.
+// The user selects:
+// - a starting campus
+// - specific campuses they want to visit
+//
+// After confirming the starting campus, a checklist of remaining campuses
+// is displayed. The user selects which ones to include, and the window
+// launches tripWindow using the selected list with the optimal route option.
+
 #include "customtripwindow.h"
 #include "ui_customtripwindow.h"
 
@@ -13,6 +30,12 @@
 #include <QSqlError>
 #include <QSqlQuery>
 
+/*
+ * Function: CustomTripWindow constructor
+ * Purpose : Initializes the Custom Trip window.
+ *           Loads campuses from the database, fills the starting dropdown,
+ *           and prepares the checklist table for campus selection.
+ */
 CustomTripWindow::CustomTripWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::CustomTripWindow)
@@ -45,11 +68,23 @@ CustomTripWindow::CustomTripWindow(QWidget *parent)
     ui->tableWidget->setRowCount(0);
 }
 
+/*
+ * Function: ~CustomTripWindow
+ * Purpose : Releases memory used by the UI when the window is destroyed.
+ */
 CustomTripWindow::~CustomTripWindow()
 {
     delete ui;
 }
 
+/*
+ * Function: ensureDbOpen
+ * Purpose : Ensures that the SQLite database connection exists and is open.
+ *           Searches common directories for college_tour.sqlite if necessary.
+ *
+ * Returns : true if the database is successfully opened
+ *           false if the database cannot be found or opened
+ */
 bool CustomTripWindow::ensureDbOpen()
 {
     QSqlDatabase db;
@@ -68,7 +103,6 @@ bool CustomTripWindow::ensureDbOpen()
     const QString exeDir = QCoreApplication::applicationDirPath();
     QStringList candidates;
 
-    // Look in exe dir and walk upward a few levels (helps when you keep the DB in the project root)
     QDir d(exeDir);
     for (int i = 0; i < 6; ++i)
     {
@@ -77,10 +111,9 @@ bool CustomTripWindow::ensureDbOpen()
             break;
     }
 
-    // Also try current working directory (Qt Creator often sets this to the build folder)
     candidates << QDir::current().filePath("college_tour.sqlite");
 
-QString dbPath;
+    QString dbPath;
     for (const QString &p : candidates)
     {
         if (QFileInfo::exists(p))
@@ -96,6 +129,13 @@ QString dbPath;
     return db.open();
 }
 
+/*
+ * Function: loadCampuses
+ * Purpose : Retrieves a list of campus names from the database.
+ *           Combines campuses appearing as both starting and destination nodes.
+ *
+ * Returns : A QStringList containing all campus names.
+ */
 QStringList CustomTripWindow::loadCampuses()
 {
     QStringList campuses;
@@ -124,6 +164,11 @@ QStringList CustomTripWindow::loadCampuses()
     return campuses;
 }
 
+/*
+ * Function: on_confirmButtonCT_clicked
+ * Purpose : Locks in the starting campus selected by the user.
+ *           Populates the checklist table with the remaining campuses.
+ */
 void CustomTripWindow::on_confirmButtonCT_clicked()
 {
     m_startLocked = ui->selectStartingCollegeDropdownCT->currentText().trimmed();
@@ -133,7 +178,6 @@ void CustomTripWindow::on_confirmButtonCT_clicked()
     ui->selectStartingCollegeDropdownCT->setEnabled(false);
     ui->confirmButtonCT->setEnabled(false);
 
-    // Build checklist of remaining campuses
     QStringList remaining;
     for (const QString &c : m_allCampuses)
     {
@@ -154,6 +198,11 @@ void CustomTripWindow::on_confirmButtonCT_clicked()
     }
 }
 
+/*
+ * Function: on_startTripButtonCT_clicked
+ * Purpose : Starts the custom trip when the Start Trip button is clicked.
+ *           Collects selected campuses and launches the TripWindow.
+ */
 void CustomTripWindow::on_startTripButtonCT_clicked()
 {
     if (m_startLocked.isEmpty())
@@ -180,7 +229,6 @@ void CustomTripWindow::on_startTripButtonCT_clicked()
         return;
     }
 
-    // Close this setup window so TripWindow is the only one open.
     this->close();
 
     tripWindow dlg(m_startLocked, selected, selected.size(), /*forceExact=*/true, nullptr);

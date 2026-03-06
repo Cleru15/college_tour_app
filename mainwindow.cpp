@@ -1,3 +1,18 @@
+/**
+ * @file mainwindow.cpp
+ * @brief Implements the MainWindow class.
+ *
+ * Handles the main UI logic including loading campus distances,
+ * opening souvenir previews, and launching trip planning windows.
+ */
+
+// mainwindow.cpp controls the main interface of the Campus Tour application.
+// This window acts as the central hub where users can preview souvenirs,
+// view campus distances, or start either a Basic Trip or Custom Trip.
+//
+// It also manages the model/view system used to display campus distance
+// data from the SQLite database.
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -18,6 +33,11 @@
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 
+/*
+ * Function: MainWindow constructor
+ * Purpose : Initializes the main application window.
+ *           Builds the UI and sets up the campus distance table.
+ */
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -26,15 +46,27 @@ MainWindow::MainWindow(QWidget *parent)
 
     setWindowTitle("Campus Tour");
 
-    // Build the distances table on top of the existing list view area.
     setupDistanceUi();
 }
 
+/*
+ * Function: ~MainWindow
+ * Purpose : Cleans up dynamically allocated UI resources
+ *           when the main window is destroyed.
+ */
 MainWindow::~MainWindow()
 {
     delete ui;
 }
 
+/*
+ * Function: ensureDbOpen
+ * Purpose : Ensures the SQLite database connection exists and is open.
+ *           Searches common locations for college_tour.sqlite if needed.
+ *
+ * Returns : true if the database connection is available
+ *           false if the database cannot be found or opened
+ */
 bool MainWindow::ensureDbOpen()
 {
     QSqlDatabase db;
@@ -50,11 +82,9 @@ bool MainWindow::ensureDbOpen()
         db = QSqlDatabase::addDatabase("QSQLITE");
     }
 
-    // Try common locations (exe dir, parent dir, current dir)
     const QString exeDir = QCoreApplication::applicationDirPath();
     QStringList candidates;
 
-    // Look in exe dir and walk upward a few levels (helps when you keep the DB in the project root)
     QDir d(exeDir);
     for (int i = 0; i < 6; ++i)
     {
@@ -63,15 +93,13 @@ bool MainWindow::ensureDbOpen()
             break;
     }
 
-    // Also try current working directory (Qt Creator often sets this to the build folder)
     candidates << QDir::current().filePath("college_tour.sqlite");
 
-QString dbPath;
+    QString dbPath;
     for (const QString &p : candidates)
     {
         if (QFileInfo::exists(p))
         {
-            dbPath = QDir(p).absolutePath() == p ? p : p;
             dbPath = p;
             break;
         }
@@ -98,15 +126,18 @@ QString dbPath;
     return true;
 }
 
+/*
+ * Function: setupDistanceUi
+ * Purpose : Builds the campus distance display using Qt's model/view system.
+ *           Creates a table view connected to a SQL query model.
+ */
 void MainWindow::setupDistanceUi()
 {
     if (!ensureDbOpen())
         return;
 
-    // Reuse existing dropdown + button from the .ui
     m_fromCampusCombo = ui->dropdownSouvenirPreview_2;
 
-    // Replace the center listView with a real table (like your souvenir window)
     if (ui->distanceListView)
         ui->distanceListView->hide();
 
@@ -124,7 +155,6 @@ void MainWindow::setupDistanceUi()
 
     populateStartingCampusCombo();
 
-    // Load default distances
     if (m_fromCampusCombo && m_fromCampusCombo->count() > 0)
     {
         QString start = m_fromCampusCombo->currentData().toString();
@@ -134,6 +164,11 @@ void MainWindow::setupDistanceUi()
     }
 }
 
+/*
+ * Function: populateStartingCampusCombo
+ * Purpose : Loads campus names from the database into the dropdown menu.
+ *           Ensures all campuses are included by combining both distance columns.
+ */
 void MainWindow::populateStartingCampusCombo()
 {
     if (!m_fromCampusCombo)
@@ -167,12 +202,16 @@ void MainWindow::populateStartingCampusCombo()
             m_fromCampusCombo->addItem(c, c);
     }
 
-    // Default to Saddleback if present
     const int idx = m_fromCampusCombo->findData("Saddleback College");
     if (idx >= 0)
         m_fromCampusCombo->setCurrentIndex(idx);
 }
 
+/*
+ * Function: loadDistancesForCampus
+ * Purpose : Queries the database for all campuses reachable from
+ *           the selected starting campus and displays them in the table.
+ */
 void MainWindow::loadDistancesForCampus(const QString &fromCampus)
 {
     if (!m_distanceTable || !m_distanceModel)
@@ -219,8 +258,10 @@ void MainWindow::loadDistancesForCampus(const QString &fromCampus)
     m_distanceTable->resizeColumnsToContents();
 }
 
-// ---- Slots required by mainwindow.ui connections ----
-
+/*
+ * Function: previewSouvenirButtonClick
+ * Purpose : Opens the souvenir preview dialog for the selected campus.
+ */
 void MainWindow::previewSouvenirButtonClick()
 {
     const QString campus = ui->dropdownSouvenirPreview
@@ -235,13 +276,19 @@ void MainWindow::previewSouvenirButtonClick()
     dlg.exec();
 }
 
+/*
+ * Function: cancelButtonClick
+ * Purpose : Exits the application when the cancel button is pressed.
+ */
 void MainWindow::cancelButtonClick()
 {
     QCoreApplication::quit();
 }
 
-// ---- Auto-connected slots from object names ----
-
+/*
+ * Function: on_submitButtonSouvenirPreview_2_clicked
+ * Purpose : Loads and displays campus distances for the selected starting campus.
+ */
 void MainWindow::on_submitButtonSouvenirPreview_2_clicked()
 {
     if (!m_fromCampusCombo)
@@ -251,25 +298,30 @@ void MainWindow::on_submitButtonSouvenirPreview_2_clicked()
     if (from.isEmpty())
         from = m_fromCampusCombo->currentText();
 
-    // Ignore placeholder if any
     if (from.startsWith("Distance", Qt::CaseInsensitive))
         return;
 
     loadDistancesForCampus(from);
 }
 
+/*
+ * Function: on_submitButtonSouvenirPreview_3_clicked
+ * Purpose : Opens the Basic Trip planning window.
+ */
 void MainWindow::on_submitButtonSouvenirPreview_3_clicked()
 {
-    // Basic Trip
     auto *win = new BasicTripWindow(this);
     win->setAttribute(Qt::WA_DeleteOnClose);
     win->show();
     this->hide();
 }
 
+/*
+ * Function: on_submitButtonSouvenirPreview_4_clicked
+ * Purpose : Opens the Custom Trip planning window.
+ */
 void MainWindow::on_submitButtonSouvenirPreview_4_clicked()
 {
-    // Custom Trip
     auto *win = new CustomTripWindow(this);
     win->setAttribute(Qt::WA_DeleteOnClose);
     win->show();

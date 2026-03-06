@@ -77,7 +77,8 @@ OBJECTS       = basictripwindow.o \
 		moc_newwindow.o \
 		moc_summarywindow.o \
 		moc_tripwindow.o
-DIST          = /Users/cleru/Qt/6.10.2/macos/mkspecs/features/spec_pre.prf \
+DIST          = ../../college_tour.sqlite \
+		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/spec_pre.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/device_config.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/common/unix.conf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/common/mac.conf \
@@ -292,6 +293,7 @@ DIST          = /Users/cleru/Qt/6.10.2/macos/mkspecs/features/spec_pre.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/qt_config.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang/qmake.conf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/spec_post.prf \
+		../../.qmake.stash \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/exclusive_builds.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/mac/sdk.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/toolchain.prf \
@@ -341,7 +343,7 @@ TARGET        = Campus.app/Contents/MacOS/Campus
 EXPORT_QMAKE_MAC_SDK = macosx
 EXPORT_QMAKE_MAC_SDK_VERSION = 26.2
 EXPORT_QMAKE_XCODE_DEVELOPER_PATH = /Applications/Xcode.app/Contents/Developer
-EXPORT__QMAKE_STASH_ = 
+EXPORT__QMAKE_STASH_ = /Users/cleru/Desktop/Qt Projects/Campus/build/Qt_6_10_2_for_macOS-Debug/.qmake.stash
 EXPORT_VALID_ARCHS = x86_64 arm64
 EXPORT_DEFAULT_ARCHS = arm64
 EXPORT_ARCHS = $(filter $(EXPORT_VALID_ARCHS), $(if $(ARCHS), $(ARCHS), $(if $(EXPORT_DEFAULT_ARCHS), $(EXPORT_DEFAULT_ARCHS), $(EXPORT_VALID_ARCHS))))
@@ -572,6 +574,7 @@ Makefile: ../../Campus.pro /Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang/qmake
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/qt_config.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang/qmake.conf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/exclusive_builds.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/mac/sdk.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/toolchain.prf \
@@ -826,6 +829,7 @@ Makefile: ../../Campus.pro /Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang/qmake
 /Users/cleru/Qt/6.10.2/macos/mkspecs/features/qt_config.prf:
 /Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang/qmake.conf:
 /Users/cleru/Qt/6.10.2/macos/mkspecs/features/spec_post.prf:
+.qmake.stash:
 /Users/cleru/Qt/6.10.2/macos/mkspecs/features/exclusive_builds.prf:
 /Users/cleru/Qt/6.10.2/macos/mkspecs/features/mac/sdk.prf:
 /Users/cleru/Qt/6.10.2/macos/mkspecs/features/toolchain.prf:
@@ -900,6 +904,7 @@ clean: compiler_clean
 
 distclean: clean 
 	-$(DEL_FILE) -r Campus.app
+	-$(DEL_FILE) .qmake.stash
 	-$(DEL_FILE) Makefile
 
 

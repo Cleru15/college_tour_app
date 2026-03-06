@@ -1,3 +1,18 @@
+/**
+ * @file summarywindow.cpp
+ * @brief Implements the summaryWindow dialog.
+ *
+ * Builds a readable summary of the trip route and displays
+ * the final travel distance and souvenir information.
+ */
+
+// summarywindow.cpp displays the final trip summary after a route is completed.
+// It shows the total distance traveled, souvenir totals, and a readable
+// breakdown of the campuses visited in order.
+//
+// This window is read-only and is used to give the user a final overview
+// of the trip after leaving the trip planning window.
+
 #include "summarywindow.h"
 #include "ui_summarywindow.h"
 
@@ -5,6 +20,11 @@
 #include <QLineEdit>
 #include <QStringListModel>
 
+/*
+ * Function: summaryWindow constructor
+ * Purpose : Initializes the summary dialog and displays the route,
+ *           total distance traveled, and placeholder souvenir totals.
+ */
 summaryWindow::summaryWindow(const std::vector<QString> &route,
                              const std::vector<double> &legs,
                              double totalMiles,
@@ -50,11 +70,20 @@ summaryWindow::summaryWindow(const std::vector<QString> &route,
     ui->listView->setModel(m_model);
 }
 
+/*
+ * Function: ~summaryWindow
+ * Purpose : Cleans up the UI resources when the summary window is destroyed.
+ */
 summaryWindow::~summaryWindow()
 {
     delete ui;
 }
 
+/*
+ * Function: setReadOnly
+ * Purpose : Configures a QLineEdit so the user can view the value
+ *           without being able to edit or focus on it.
+ */
 void summaryWindow::setReadOnly(QLineEdit *edit)
 {
     if (!edit) return;

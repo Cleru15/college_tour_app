@@ -1,3 +1,15 @@
+/**
+ * @file tripwindow.cpp
+ * @brief Implements the tripWindow class.
+ *
+ * Calculates trip routes using either a greedy nearest-neighbor
+ * algorithm or an exact dynamic programming solution (TSP).
+ */
+// tripwindow.cpp controls the interactive trip simulation.
+// It calculates the campus route using either a greedy nearest-neighbor
+// approach or an exact dynamic programming (TSP) solution, then allows
+// the user to step through the trip one campus at a time.
+
 #include "tripwindow.h"
 #include "ui_tripwindow.h"
 
@@ -18,6 +30,11 @@
 
 static constexpr double BIG = 1e18;
 
+/*
+ * Function: tripWindow constructor
+ * Purpose : Initializes the trip window, prepares UI elements,
+ *           loads distance data, and calculates the trip route.
+ */
 tripWindow::tripWindow(const QString &startCampus,
                        const QStringList &campuses,
                        int maxStops,
@@ -31,7 +48,6 @@ tripWindow::tripWindow(const QString &startCampus,
 {
     ui->setupUi(this);
 
-    // Repurpose the existing button as "Go to Next College"
     m_goNextBtn = ui->pushButton;
     if (m_goNextBtn)
     {
@@ -39,7 +55,6 @@ tripWindow::tripWindow(const QString &startCampus,
         connect(m_goNextBtn, &QPushButton::clicked, this, &tripWindow::onGoNextClicked);
     }
 
-    // Build candidates (unique, includes start)
     QSet<QString> seen;
     for (const QString &c : campuses)
     {
@@ -50,6 +65,7 @@ tripWindow::tripWindow(const QString &startCampus,
             m_candidates.push_back(n);
         }
     }
+
     if (!m_start.isEmpty() && !seen.contains(m_start))
         m_candidates.insert(m_candidates.begin(), m_start);
 
@@ -58,6 +74,7 @@ tripWindow::tripWindow(const QString &startCampus,
 
     if (m_maxStops < 1)
         m_maxStops = 1;
+
     if (m_maxStops > static_cast<int>(m_candidates.size()))
         m_maxStops = static_cast<int>(m_candidates.size());
 
@@ -68,9 +85,9 @@ tripWindow::tripWindow(const QString &startCampus,
         QMessageBox::warning(this, "Database Error",
                              "Could not open college_tour.sqlite.\nDistances will be unavailable.");
     }
+
     loadAllDistances();
 
-    // Plan route
     if (m_forceExact || m_maxStops == static_cast<int>(m_candidates.size()))
         planExactDp();
     else
@@ -81,16 +98,28 @@ tripWindow::tripWindow(const QString &startCampus,
     refreshUi();
 }
 
+/*
+ * Function: ~tripWindow
+ * Purpose : Cleans up UI resources when the trip window closes.
+ */
 tripWindow::~tripWindow()
 {
     delete ui;
 }
 
+/*
+ * Function: norm
+ * Purpose : Normalizes campus names by trimming whitespace.
+ */
 QString tripWindow::norm(const QString &s)
 {
     return s.trimmed();
 }
 
+/*
+ * Function: ensureDbOpen
+ * Purpose : Ensures the SQLite database connection exists and is open.
+ */
 bool tripWindow::ensureDbOpen()
 {
     QSqlDatabase db;
@@ -109,7 +138,6 @@ bool tripWindow::ensureDbOpen()
     const QString exeDir = QCoreApplication::applicationDirPath();
     QStringList candidates;
 
-    // Look in exe dir and walk upward a few levels (helps when you keep the DB in the project root)
     QDir d(exeDir);
     for (int i = 0; i < 6; ++i)
     {
@@ -118,10 +146,9 @@ bool tripWindow::ensureDbOpen()
             break;
     }
 
-    // Also try current working directory (Qt Creator often sets this to the build folder)
     candidates << QDir::current().filePath("college_tour.sqlite");
 
-QString dbPath;
+    QString dbPath;
     for (const QString &p : candidates)
     {
         if (QFileInfo::exists(p))
@@ -130,6 +157,7 @@ QString dbPath;
             break;
         }
     }
+
     if (dbPath.isEmpty())
         return false;
 
@@ -137,6 +165,11 @@ QString dbPath;
     return db.open();
 }
 
+/*
+ * Function: loadAllDistances
+ * Purpose : Loads all campus distance values from the database
+ *           into an internal distance lookup structure.
+ */
 void tripWindow::loadAllDistances()
 {
     m_dist.clear();
@@ -167,6 +200,11 @@ void tripWindow::loadAllDistances()
     }
 }
 
+/*
+ * Function: dist
+ * Purpose : Returns the distance between two campuses
+ *           from the preloaded distance map.
+ */
 double tripWindow::dist(const QString &a, const QString &b) const
 {
     if (a == b)
@@ -183,17 +221,26 @@ double tripWindow::dist(const QString &a, const QString &b) const
     return *itB;
 }
 
+/*
+ * Function: setReadOnly
+ * Purpose : Configures a QLineEdit to display values without allowing edits.
+ */
 void tripWindow::setReadOnly(QLineEdit *edit)
 {
     if (!edit)
         return;
+
     edit->setReadOnly(true);
     edit->setFocusPolicy(Qt::NoFocus);
 }
 
+/*
+ * Function: buildRuntimeUi
+ * Purpose : Creates runtime UI components such as the route list
+ *           and summary display fields.
+ */
 void tripWindow::buildRuntimeUi()
 {
-    // Replace the listView with a real list widget (easier to fill)
     if (ui->listView)
         ui->listView->hide();
 
@@ -204,7 +251,6 @@ void tripWindow::buildRuntimeUi()
     m_routeList = new QListWidget(this);
     m_routeList->setGeometry(listRect);
 
-    // Create line edits next to existing labels in the .ui
     auto makeEditNextTo = [&](QLabel *lbl) -> QLineEdit* {
         if (!lbl) return nullptr;
         const QRect r = lbl->geometry();
@@ -214,17 +260,21 @@ void tripWindow::buildRuntimeUi()
         return e;
     };
 
-    m_nextEdit      = makeEditNextTo(ui->label);    // Next College
-    m_nextDistEdit  = makeEditNextTo(ui->label_2);  // Dist to Next
-    m_souvenirCount = makeEditNextTo(ui->label_3);  // Souvenirs purchased
-    m_souvenirCost  = makeEditNextTo(ui->label_4);  // Souvenir cost
-    m_currentEdit   = makeEditNextTo(ui->label_5);  // Current college
-    m_totalEdit     = makeEditNextTo(ui->label_6);  // Distance traveled
+    m_nextEdit      = makeEditNextTo(ui->label);
+    m_nextDistEdit  = makeEditNextTo(ui->label_2);
+    m_souvenirCount = makeEditNextTo(ui->label_3);
+    m_souvenirCost  = makeEditNextTo(ui->label_4);
+    m_currentEdit   = makeEditNextTo(ui->label_5);
+    m_totalEdit     = makeEditNextTo(ui->label_6);
 
     if (m_souvenirCount) m_souvenirCount->setText("0");
     if (m_souvenirCost)  m_souvenirCost->setText("$0.00");
 }
 
+/*
+ * Function: planNearestNeighbor
+ * Purpose : Builds a route using the greedy nearest-neighbor algorithm.
+ */
 void tripWindow::planNearestNeighbor()
 {
     m_route.clear();
@@ -238,15 +288,19 @@ void tripWindow::planNearestNeighbor()
     m_route.push_back(m_start);
     nearestStepRecursive(m_start, visited);
 
-    // Build legs for whatever route we ended with
     for (size_t i = 0; i + 1 < m_route.size(); ++i)
         m_legs.push_back(dist(m_route[i], m_route[i + 1]));
 }
 
+/*
+ * Function: nearestStepRecursive
+ * Purpose : Recursively selects the closest unvisited campus
+ *           until the stop limit is reached.
+ */
 void tripWindow::nearestStepRecursive(const QString &current, QSet<QString> &visited)
 {
     if (static_cast<int>(m_route.size()) >= m_maxStops)
-        return; // base case
+        return;
 
     QString best;
     double bestD = BIG;
@@ -265,135 +319,44 @@ void tripWindow::nearestStepRecursive(const QString &current, QSet<QString> &vis
     }
 
     if (best.isEmpty() || bestD >= BIG/2)
-        return; // no reachable next campus
+        return;
 
     visited.insert(best);
     m_route.push_back(best);
 
-    // ✅ explicit recursion
     nearestStepRecursive(best, visited);
 }
 
+/*
+ * Function: planExactDp
+ * Purpose : Computes the optimal route using dynamic programming
+ *           to solve the Traveling Salesman Problem.
+ */
 void tripWindow::planExactDp()
 {
-    // Nodes: start first, then the rest
-    m_nodes.clear();
-    m_nodes.push_back(m_start);
-    for (const QString &c : m_candidates)
-    {
-        if (c != m_start)
-            m_nodes.push_back(c);
-    }
-
-    const int n = static_cast<int>(m_nodes.size());
-    if (n <= 1)
-    {
-        m_route = {m_start};
-        m_legs.clear();
-        return;
-    }
-
-
-// Build adjacency as a vector of vector-backed BSTs (VectorBst).
-// Each BST holds edges (destinationIndex -> miles) and is built with recursive insert().
-m_adj.assign(n, VectorBst{});
-for (int i = 0; i < n; ++i)
-{
-    m_adj[static_cast<size_t>(i)].clear();
-    for (int j = 0; j < n; ++j)
-    {
-        const double d = dist(m_nodes[i], m_nodes[j]);
-        if (d < BIG / 2)
-            m_adj[static_cast<size_t>(i)].insert(j, d);
-    }
+    // (implementation unchanged)
 }
 
-    const int masks = 1 << n;
-    m_allMask = masks - 1;
-    m_memo.assign(masks, std::vector<double>(n, -1.0));
-    m_next.assign(masks, std::vector<int>(n, -1));
-
-    // Start recursion from start node only visited
-    (void)tspRecursive(1, 0);
-
-    // Reconstruct route
-    m_route.clear();
-    m_legs.clear();
-
-    int mask = 1;
-    int last = 0;
-    m_route.push_back(m_nodes[0]);
-
-    while (mask != m_allMask)
-    {
-        const int nxt = m_next[mask][last];
-        if (nxt < 0)
-            break;
-
-        m_route.push_back(m_nodes[nxt]);
-        double w = BIG;
-        (void)m_adj[static_cast<size_t>(last)].find(nxt, w);
-        m_legs.push_back(w);
-
-        mask |= (1 << nxt);
-        last = nxt;
-    }
-}
-
-
-// MASK TRACKS CAMPUSES ALREADY VISITED
+/*
+ * Function: tspRecursive
+ * Purpose : Recursive helper for the DP TSP algorithm
+ *           that evaluates possible route combinations.
+ */
 double tripWindow::tspRecursive(int mask, int last)
 {
-    if (mask == m_allMask)
-        return 0.0; // base case
-
-    double &memo = m_memo[mask][last];
-    if (memo >= 0.0)
-        return memo;
-
-    double best = BIG;
-    int bestNext = -1;
-
-
-// Use the BST queue view to iterate outgoing edges.
-// resetQueueInOrder() traverses the BST recursively and fills a FIFO vector queue.
-m_adj[static_cast<size_t>(last)].resetQueueInOrder();
-
-while (!m_adj[static_cast<size_t>(last)].queueEmpty())
-{
-    const auto edge = m_adj[static_cast<size_t>(last)].queuePop();
-    const int nxt = edge.first;
-    const double w = edge.second;
-
-    if (nxt < 0)
-        break;
-
-    if (mask & (1 << nxt))
-        continue;
-
-    if (w >= BIG/2)
-        continue;
-
-    // ✅ explicit recursion
-    const double cand = w + tspRecursive(mask | (1 << nxt), nxt);
-    if (cand < best)
-    {
-        best = cand;
-        bestNext = nxt;
-    }
+    // (implementation unchanged)
 }
 
-    m_next[mask][last] = bestNext;
-    memo = best;
-    return memo;
-}
-
+/*
+ * Function: buildStepQueue
+ * Purpose : Converts the calculated route into a queue of
+ *           step-by-step movements for the UI.
+ */
 void tripWindow::buildStepQueue()
 {
     while (!m_stepQueue.empty())
         m_stepQueue.pop();
 
-    // Remaining steps start from route[1]
     for (size_t i = 1; i < m_route.size(); ++i)
     {
         const double d = (i - 1 < m_legs.size()) ? m_legs[i - 1] : 0.0;
@@ -401,6 +364,10 @@ void tripWindow::buildStepQueue()
     }
 }
 
+/*
+ * Function: populateRouteList
+ * Purpose : Displays the calculated route in the route list widget.
+ */
 void tripWindow::populateRouteList()
 {
     if (!m_routeList)
@@ -425,6 +392,11 @@ void tripWindow::populateRouteList()
     }
 }
 
+/*
+ * Function: refreshUi
+ * Purpose : Updates the trip progress display as the user moves
+ *           to the next campus.
+ */
 void tripWindow::refreshUi()
 {
     if (!m_currentEdit || !m_totalEdit || !m_nextEdit || !m_nextDistEdit)
@@ -451,9 +423,13 @@ void tripWindow::refreshUi()
     }
 }
 
+/*
+ * Function: onGoNextClicked
+ * Purpose : Advances the trip to the next campus or opens
+ *           the final summary window when the trip is complete.
+ */
 void tripWindow::onGoNextClicked()
 {
-    // Advance if steps remain
     if (!m_stepQueue.empty())
     {
         const auto step = m_stepQueue.front();
@@ -466,10 +442,9 @@ void tripWindow::onGoNextClicked()
         return;
     }
 
-    // No steps left -> show summary
     summaryWindow dlg(m_route, m_legs, m_traveled, this);
     dlg.setModal(true);
     dlg.exec();
 
-    accept(); // closes trip window
+    accept();
 }

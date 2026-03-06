@@ -1,3 +1,7 @@
+# Campus.pro is the Qt project build file.
+# It lists which Qt modules we use (widgets for UI, sql for database, quick if needed),
+# and which source/header/ui files get compiled into the application.
+
 QT       += core gui \
     quick
 QT       += sql

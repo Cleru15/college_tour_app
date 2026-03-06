@@ -1,3 +1,18 @@
+/**
+ * @file newwindow.cpp
+ * @brief Implements the NewWindow dialog.
+ *
+ * Opens a database connection and loads souvenir data for the
+ * selected campus into a Qt table view.
+ */
+
+// newwindow.cpp displays the souvenir list for a selected campus.
+// This dialog queries the SQLite database and shows souvenir items
+// and prices in a read-only table view using Qt's model/view system.
+//
+// The window creates its own database connection so multiple dialogs
+// can safely access the database without interfering with each other.
+
 #include "newwindow.h"
 #include "ui_newwindow.h"
 
@@ -10,17 +25,19 @@
 #include <QSqlQueryModel>
 #include <QDebug>
 
-// Builds the souvenirs dialog UI, opens the DB, and loads souvenirs for the chosen college
+/*
+ * Function: NewWindow constructor
+ * Purpose : Creates the souvenir dialog for the selected campus.
+ *           Configures the UI, opens the database, and loads souvenir data.
+ */
 NewWindow::NewWindow(const QString &collegeName, QWidget *parent)
     : QDialog(parent), ui(new Ui::NewWindow), m_collegeName(collegeName)
 {
     ui->setupUi(this);
 
-    // Configure the dialog title/size for a consistent user experience
     this->setWindowTitle("Souvenirs - " + m_collegeName);
     this->resize(900, 600);
 
-    // If table view exists, configure it for read-only row-based display
     if (ui->tableView)
     {
         ui->tableView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -29,7 +46,6 @@ NewWindow::NewWindow(const QString &collegeName, QWidget *parent)
         ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     }
 
-    // If the database cannot be opened, stop before attempting to query souvenirs.
     if (!openDb()) {
         return;
     }
@@ -37,26 +53,34 @@ NewWindow::NewWindow(const QString &collegeName, QWidget *parent)
     loadSouvenirs();
 }
 
-// Closes and removes database connection, then deletes the generated UI object
+/*
+ * Function: ~NewWindow
+ * Purpose : Closes the database connection and releases
+ *           the dynamically allocated UI resources.
+ */
 NewWindow::~NewWindow()
 {
     closeDb();
     delete ui;
 }
 
-// Opens a unique SQLite connection for this dialog so multiple dialogs don't conflict
+/*
+ * Function: openDb
+ * Purpose : Creates and opens a unique SQLite connection
+ *           for this dialog instance.
+ *
+ * Returns : true if the database is successfully opened
+ *           false if the database cannot be found or opened
+ */
 bool NewWindow::openDb()
 {
-    // Generate a per-instance connection name to avoid Qt reusing the wrong connection
     m_connName = QString("campus_conn_%1").arg(reinterpret_cast<quintptr>(this));
 
     m_db = QSqlDatabase::addDatabase("QSQLITE", m_connName);
 
-    // Try common locations (exe dir, parent dir, current dir)
     const QString exeDir = QCoreApplication::applicationDirPath();
     QStringList candidates;
 
-    // Look in exe dir and walk upward a few levels (helps when you keep the DB in the project root)
     QDir d(exeDir);
     for (int i = 0; i < 6; ++i)
     {
@@ -65,10 +89,9 @@ bool NewWindow::openDb()
             break;
     }
 
-    // Also try current working directory (Qt Creator often sets this to the build folder)
     candidates << QDir::current().filePath("college_tour.sqlite");
 
-QString dbPath;
+    QString dbPath;
     for (const QString &p : candidates)
     {
         if (QFileInfo::exists(p))
@@ -89,7 +112,6 @@ QString dbPath;
 
     m_db.setDatabaseName(dbPath);
 
-    // If SQLite fails to open, show error text and prevent querying
     if (!m_db.open())
     {
         QMessageBox::critical(this, "Database Error",
@@ -100,32 +122,36 @@ QString dbPath;
     return true;
 }
 
-// Closes dialog's database connection and removes it from Qt's connection registry
+/*
+ * Function: closeDb
+ * Purpose : Safely closes the database connection used by this dialog
+ *           and removes it from Qt's connection registry.
+ */
 void NewWindow::closeDb()
 {
-    // If the connection object is valid, close it safely if it is open
     if (m_db.isValid())
     {
-        // If database is currently open, close it before removal
         if (m_db.isOpen())
             m_db.close();
     }
 
-    // Always remove  named connection so Qt doesn't keep stale connections around
     QSqlDatabase::removeDatabase(m_connName);
 }
 
-// Loads souvenir items/prices for  selected campus and displays them in the table view
+/*
+ * Function: loadSouvenirs
+ * Purpose : Retrieves souvenir items and prices for the selected campus
+ *           and displays them in the table view.
+ */
 void NewWindow::loadSouvenirs()
 {
-    // Log campus name to help debug filtering/parameter binding problems
     qDebug() << "loadSouvenirs campus =" << m_collegeName;
 
     auto *model = new QSqlQueryModel(this);
 
     QSqlQuery query(m_db);
     query.prepare
-    (R"(
+        (R"(
         SELECT item, price
         FROM souvenirs
         WHERE TRIM(campus) = :campus
@@ -136,7 +162,6 @@ void NewWindow::loadSouvenirs()
 
     qDebug() << "Prepared =" << query.lastQuery();
 
-    // If souvenir query fails, show SQL error and stop
     if (!query.exec())
     {
         QMessageBox::critical(this, "Query Error",
@@ -144,10 +169,8 @@ void NewWindow::loadSouvenirs()
         return;
     }
 
-    // Move executed query into the model so the view can display the results
     model->setQuery(std::move(query));
 
-    // If  model reports an error, show it and stop.
     if (model->lastError().isValid())
     {
         QMessageBox::critical(this, "Model Error","Model error:\n" + model->lastError().text());
@@ -157,7 +180,6 @@ void NewWindow::loadSouvenirs()
     model->setHeaderData(0, Qt::Horizontal, "Item");
     model->setHeaderData(1, Qt::Horizontal, "Price");
 
-    // If the UI table view exists, attach the model and autosize columns
     if (ui->tableView)
     {
         ui->tableView->setModel(model);
