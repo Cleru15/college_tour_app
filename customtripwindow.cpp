@@ -2,23 +2,16 @@
  * @file customtripwindow.cpp
  * @brief Implements the CustomTripWindow class.
  *
- * Loads campus data and builds a checklist so the user can select
- * specific campuses to include in their trip.
+ * This window allows the user to create a custom campus tour
+ * by selecting a starting campus and choosing exactly which
+ * campuses to include in the trip.
  */
-
-// CustomTripWindow allows the user to create a custom college tour.
-// The user selects:
-// - a starting campus
-// - specific campuses they want to visit
-//
-// After confirming the starting campus, a checklist of remaining campuses
-// is displayed. The user selects which ones to include, and the window
-// launches tripWindow using the selected list with the optimal route option.
 
 #include "customtripwindow.h"
 #include "ui_customtripwindow.h"
 
 #include "tripwindow.h"
+#include "mainwindow.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -32,9 +25,8 @@
 
 /*
  * Function: CustomTripWindow constructor
- * Purpose : Initializes the Custom Trip window.
- *           Loads campuses from the database, fills the starting dropdown,
- *           and prepares the checklist table for campus selection.
+ * Purpose : Initializes the custom trip window and loads
+ *           the list of enabled campuses.
  */
 CustomTripWindow::CustomTripWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -43,25 +35,16 @@ CustomTripWindow::CustomTripWindow(QWidget *parent)
     ui->setupUi(this);
     setWindowTitle("Custom Trip");
 
+    ui->selectStartingCollegeDropdownCT->clear();
+
     if (ensureDbOpen())
         m_allCampuses = loadCampuses();
-    else
-    {
-        // Fall back to whatever is already in the dropdown from the .ui
-        for (int i = 0; i < ui->selectStartingCollegeDropdownCT->count(); ++i)
-            m_allCampuses << ui->selectStartingCollegeDropdownCT->itemText(i);
-    }
 
-    // Populate the starting dropdown
-    ui->selectStartingCollegeDropdownCT->clear();
     for (const QString &c : m_allCampuses)
         ui->selectStartingCollegeDropdownCT->addItem(c);
 
-    const int idx = ui->selectStartingCollegeDropdownCT->findText("Saddleback College");
-    if (idx >= 0)
-        ui->selectStartingCollegeDropdownCT->setCurrentIndex(idx);
+    ui->selectStartingCollegeDropdownCT->setCurrentIndex(-1);
 
-    // Prep table
     ui->tableWidget->setColumnCount(1);
     ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "Campuses");
     ui->tableWidget->horizontalHeader()->setStretchLastSection(true);
@@ -70,7 +53,7 @@ CustomTripWindow::CustomTripWindow(QWidget *parent)
 
 /*
  * Function: ~CustomTripWindow
- * Purpose : Releases memory used by the UI when the window is destroyed.
+ * Purpose : Cleans up UI resources when the window closes.
  */
 CustomTripWindow::~CustomTripWindow()
 {
@@ -79,11 +62,8 @@ CustomTripWindow::~CustomTripWindow()
 
 /*
  * Function: ensureDbOpen
- * Purpose : Ensures that the SQLite database connection exists and is open.
- *           Searches common directories for college_tour.sqlite if necessary.
- *
- * Returns : true if the database is successfully opened
- *           false if the database cannot be found or opened
+ * Purpose : Ensures the SQLite database connection is open
+ *           before loading campus information.
  */
 bool CustomTripWindow::ensureDbOpen()
 {
@@ -122,6 +102,7 @@ bool CustomTripWindow::ensureDbOpen()
             break;
         }
     }
+
     if (dbPath.isEmpty())
         return false;
 
@@ -131,10 +112,8 @@ bool CustomTripWindow::ensureDbOpen()
 
 /*
  * Function: loadCampuses
- * Purpose : Retrieves a list of campus names from the database.
- *           Combines campuses appearing as both starting and destination nodes.
- *
- * Returns : A QStringList containing all campus names.
+ * Purpose : Returns a list of all enabled campuses
+ *           from the database.
  */
 QStringList CustomTripWindow::loadCampuses()
 {
@@ -142,14 +121,11 @@ QStringList CustomTripWindow::loadCampuses()
 
     QSqlQuery q(QSqlDatabase::database());
     q.prepare(R"(
-        SELECT DISTINCT TRIM(name) AS campus
-        FROM (
-            SELECT from_campus AS name FROM distances
-            UNION
-            SELECT to_campus AS name FROM distances
-        )
-        WHERE TRIM(name) <> ''
-        ORDER BY TRIM(name) ASC
+        SELECT campus
+        FROM campus_access
+        WHERE enabled = 1
+            AND TRIM(campus) <> ''
+        ORDER BY campus ASC
     )");
 
     if (!q.exec())
@@ -166,14 +142,18 @@ QStringList CustomTripWindow::loadCampuses()
 
 /*
  * Function: on_confirmButtonCT_clicked
- * Purpose : Locks in the starting campus selected by the user.
- *           Populates the checklist table with the remaining campuses.
+ * Purpose : Locks in the starting campus and builds the
+ *           checklist of other campuses the user can choose.
  */
 void CustomTripWindow::on_confirmButtonCT_clicked()
 {
     m_startLocked = ui->selectStartingCollegeDropdownCT->currentText().trimmed();
     if (m_startLocked.isEmpty())
+    {
+        QMessageBox::information(this, "Select Start",
+                                 "Please select a starting college first.");
         return;
+    }
 
     ui->selectStartingCollegeDropdownCT->setEnabled(false);
     ui->confirmButtonCT->setEnabled(false);
@@ -200,8 +180,8 @@ void CustomTripWindow::on_confirmButtonCT_clicked()
 
 /*
  * Function: on_startTripButtonCT_clicked
- * Purpose : Starts the custom trip when the Start Trip button is clicked.
- *           Collects selected campuses and launches the TripWindow.
+ * Purpose : Starts the custom trip using the selected
+ *           campuses chosen by the user.
  */
 void CustomTripWindow::on_startTripButtonCT_clicked()
 {
@@ -237,4 +217,18 @@ void CustomTripWindow::on_startTripButtonCT_clicked()
 
     if (parentWidget())
         parentWidget()->show();
+}
+
+/*
+ * Function: on_backButtCT_clicked
+ * Purpose : Returns the user to the main window without
+ *           starting a custom trip.
+ */
+void CustomTripWindow::on_backButtCT_clicked()
+{
+    MainWindow *mainWin = new MainWindow(nullptr);
+    mainWin->setAttribute(Qt::WA_DeleteOnClose);
+    mainWin->show();
+
+    this->close();
 }

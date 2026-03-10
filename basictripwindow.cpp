@@ -2,20 +2,16 @@
  * @file basictripwindow.cpp
  * @brief Implements the BasicTripWindow class.
  *
- * Loads campus data from the database and launches the trip window
- * using a simple nearest-neighbor route strategy.
+ * This window allows the user to start a basic campus tour
+ * by selecting a starting campus and the number of additional
+ * campuses to visit.
  */
-
-// BasicTripWindow collects user input for a "basic trip":
-// - pick a starting campus
-// - pick how many campuses to visit
-// Then it launches tripWindow with the campus list and stop limit.
-// This mode uses a greedy nearest-neighbor style route (fast, simple, not always optimal).
 
 #include "basictripwindow.h"
 #include "ui_basictripwindow.h"
 
 #include "tripwindow.h"
+#include "mainwindow.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -28,9 +24,8 @@
 
 /*
  * Function: BasicTripWindow constructor
- * Purpose : Initializes the Basic Trip window.
- *           Sets up the UI, opens the database, loads campus names,
- *           builds the stop-count dropdown, and sets a default campus.
+ * Purpose : Initializes the basic trip window, loads campuses,
+ *           and prepares the trip selection controls.
  */
 BasicTripWindow::BasicTripWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -42,18 +37,13 @@ BasicTripWindow::BasicTripWindow(QWidget *parent)
     if (ensureDbOpen())
         loadCampusesFromDb();
 
-    rebuildNumDropdown(ui->selectStartingCollegeDropdownBT->count());
-
-    // Default selection
-    const int idx = ui->selectStartingCollegeDropdownBT->findText("Saddleback College");
-    if (idx >= 0)
-        ui->selectStartingCollegeDropdownBT->setCurrentIndex(idx);
+    rebuildNumDropdown(ui->selectStartingCollegeDropdownBT->count() - 1);
+    ui->selectStartingCollegeDropdownBT->setCurrentIndex(-1);
 }
 
 /*
  * Function: ~BasicTripWindow
- * Purpose : Cleans up the dynamically allocated UI object
- *           when the window is destroyed.
+ * Purpose : Cleans up UI resources when the window closes.
  */
 BasicTripWindow::~BasicTripWindow()
 {
@@ -62,11 +52,8 @@ BasicTripWindow::~BasicTripWindow()
 
 /*
  * Function: ensureDbOpen
- * Purpose : Ensures that the SQLite database connection exists and is open.
- *           Searches common directories for college_tour.sqlite if needed.
- *
- * Returns : true if the database is successfully opened
- *           false if the database file cannot be found or opened
+ * Purpose : Ensures the SQLite database connection is open
+ *           before loading campus information.
  */
 bool BasicTripWindow::ensureDbOpen()
 {
@@ -86,7 +73,6 @@ bool BasicTripWindow::ensureDbOpen()
     const QString exeDir = QCoreApplication::applicationDirPath();
     QStringList candidates;
 
-    // Look in exe dir and walk upward a few levels (helps when you keep the DB in the project root)
     QDir d(exeDir);
     for (int i = 0; i < 6; ++i)
     {
@@ -95,7 +81,6 @@ bool BasicTripWindow::ensureDbOpen()
             break;
     }
 
-    // Also try current working directory (Qt Creator often sets this to the build folder)
     candidates << QDir::current().filePath("college_tour.sqlite");
 
     QString dbPath;
@@ -117,8 +102,8 @@ bool BasicTripWindow::ensureDbOpen()
 
 /*
  * Function: loadCampusesFromDb
- * Purpose : Retrieves campus names from the database and fills
- *           the starting-campus dropdown menu.
+ * Purpose : Loads all enabled campuses from the database
+ *           into the starting campus dropdown.
  */
 void BasicTripWindow::loadCampusesFromDb()
 {
@@ -126,14 +111,11 @@ void BasicTripWindow::loadCampusesFromDb()
 
     QSqlQuery q(QSqlDatabase::database());
     q.prepare(R"(
-        SELECT DISTINCT TRIM(name) AS campus
-        FROM (
-            SELECT from_campus AS name FROM distances
-            UNION
-            SELECT to_campus AS name FROM distances
-        )
-        WHERE TRIM(name) <> ''
-        ORDER BY TRIM(name) ASC
+        SELECT campus
+        FROM campus_access
+        WHERE enabled = 1
+            AND TRIM(campus) <> ''
+        ORDER BY campus ASC
     )");
 
     if (!q.exec())
@@ -153,24 +135,26 @@ void BasicTripWindow::loadCampusesFromDb()
 
 /*
  * Function: rebuildNumDropdown
- * Purpose : Populates the dropdown for the number of colleges to visit.
- *           Limits the choices based on how many campuses are available.
+ * Purpose : Builds the dropdown for how many additional
+ *           campuses the user wants to visit.
  */
 void BasicTripWindow::rebuildNumDropdown(int campusCount)
 {
     ui->numCollegestoVisitDropdownBT->clear();
 
-    if (campusCount <= 0)
-        campusCount = 1;
+    if (campusCount < 0)
+        campusCount = 0;
 
-    for (int i = 1; i <= campusCount; ++i)
+    ui->numCollegestoVisitDropdownBT->setEnabled(true);
+
+    for (int i = 0; i <= campusCount; ++i)
         ui->numCollegestoVisitDropdownBT->addItem(QString::number(i));
 }
 
 /*
  * Function: on_startTripButtonBT_clicked
- * Purpose : Starts the trip when the user clicks the Start Trip button.
- *           Collects the selected values and opens the trip window.
+ * Purpose : Starts the trip using the selected starting campus
+ *           and the number of campuses to visit.
  */
 void BasicTripWindow::on_startTripButtonBT_clicked()
 {
@@ -178,20 +162,36 @@ void BasicTripWindow::on_startTripButtonBT_clicked()
     const int maxStops = ui->numCollegestoVisitDropdownBT->currentText().toInt();
 
     if (start.isEmpty())
+    {
+        QMessageBox::information(this, "Select Start",
+                                 "Please select a starting college.");
         return;
+    }
 
     QStringList campuses;
     for (int i = 0; i < ui->selectStartingCollegeDropdownBT->count(); ++i)
         campuses << ui->selectStartingCollegeDropdownBT->itemText(i);
 
-    // Close this setup window so TripWindow is the only one open.
     this->close();
 
     tripWindow dlg(start, campuses, maxStops, /*forceExact=*/false, nullptr);
     dlg.setModal(true);
     dlg.exec();
 
-    // Return to main window after trip finishes.
     if (parentWidget())
         parentWidget()->show();
+}
+
+/*
+ * Function: on_backButtonBT_clicked
+ * Purpose : Returns the user to the main window without
+ *           starting a trip.
+ */
+void BasicTripWindow::on_backButtonBT_clicked()
+{
+    MainWindow *mainWin = new MainWindow(nullptr);
+    mainWin->setAttribute(Qt::WA_DeleteOnClose);
+    mainWin->show();
+
+    this->close();
 }

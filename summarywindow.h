@@ -2,34 +2,34 @@
  * @file summarywindow.h
  * @brief Defines the summaryWindow class.
  *
- * Displays a summary of the completed campus trip including
- * the route taken, total miles traveled, and souvenir totals.
+ * This window displays the final results of a completed campus tour.
+ * It shows the route taken, total miles traveled, and a summary of
+ * souvenirs purchased during the trip.
  */
-
-// summarywindow.h defines the summaryWindow dialog class.
-// This dialog displays a final summary of the campus trip,
-// including the route taken, total distance traveled,
-// and souvenir purchase totals.
 
 #ifndef SUMMARYWINDOW_H
 #define SUMMARYWINDOW_H
 
 #include <QDialog>
+#include <QString>
 #include <vector>
 
+// Forward declaration for the UI class generated from summarywindow.ui
 QT_BEGIN_NAMESPACE
 namespace Ui { class summaryWindow; }
 QT_END_NAMESPACE
 
-// Forward declarations for Qt classes used as pointers
+// Forward declarations to reduce compile dependencies
 class QStringListModel;
 class QLineEdit;
 
 /*
  * Class: summaryWindow
  * Purpose: Displays a summary of the completed campus tour.
- *          It shows the route breakdown, total miles traveled,
- *          and souvenir purchase information.
+ *
+ * The window lists the campuses visited, the distances between
+ * each stop, and the total distance traveled. It also summarizes
+ * the number and cost of souvenirs purchased during the trip.
  */
 class summaryWindow : public QDialog
 {
@@ -38,33 +38,56 @@ class summaryWindow : public QDialog
 public:
 
     /*
-     * Constructor
-     * Purpose: Builds the summary window and displays the
-     *          trip route, leg distances, and total miles traveled.
+     * Struct: PurchasedSouvenir
+     * Purpose: Represents a souvenir purchased during the trip.
+     *          Stores the campus where it was purchased, the
+     *          souvenir name, and its price.
+     */
+    struct PurchasedSouvenir
+    {
+        QString college;
+        QString name;
+        double price = 0.0;
+    };
+
+    /*
+     * Function: summaryWindow constructor
+     * Purpose : Initializes the summary window and displays
+     *           the trip route, distances, and souvenir summary.
      */
     explicit summaryWindow(const std::vector<QString> &route,
                            const std::vector<double> &legs,
                            double totalMiles,
+                           const std::vector<PurchasedSouvenir> &purchases,
                            QWidget *parent = nullptr);
 
     /*
-     * Destructor
-     * Purpose: Cleans up the UI resources when the summary window closes.
+     * Function: ~summaryWindow
+     * Purpose : Cleans up UI resources when the window closes.
      */
     ~summaryWindow();
 
+private slots:
+
+    /*
+     * Function: on_backButtonSum_clicked
+     * Purpose : Closes the summary window and returns the user
+     *           to the previous screen.
+     */
+    void on_backButtonSum_clicked();
+
 private:
 
-    // Pointer to the UI generated from summarywindow.ui
-    Ui::summaryWindow *ui;
+    // Pointer to UI elements generated from summarywindow.ui
+    Ui::summaryWindow *ui = nullptr;
 
-    // Model used to display the route breakdown in the list view
+    // Model used to display the route list in the UI
     QStringListModel *m_model = nullptr;
 
-    // Displays the total distance traveled during the trip
+    // Displays the total miles traveled during the trip
     QLineEdit *m_totalMilesEdit = nullptr;
 
-    // Displays the number of souvenirs purchased
+    // Displays the total number of souvenirs purchased
     QLineEdit *m_souvenirCountEdit = nullptr;
 
     // Displays the total cost of souvenirs purchased
@@ -72,8 +95,8 @@ private:
 
     /*
      * Function: setReadOnly
-     * Purpose : Configures a QLineEdit so the user can view
-     *           its value without being able to edit it.
+     * Purpose : Configures a QLineEdit to display values
+     *           without allowing the user to edit them.
      */
     void setReadOnly(QLineEdit *edit);
 };

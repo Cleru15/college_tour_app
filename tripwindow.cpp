@@ -2,13 +2,10 @@
  * @file tripwindow.cpp
  * @brief Implements the tripWindow class.
  *
- * Calculates trip routes using either a greedy nearest-neighbor
- * algorithm or an exact dynamic programming solution (TSP).
+ * This window calculates and simulates the campus trip route,
+ * tracks purchased souvenirs, and updates the user interface
+ * as the user progresses through the trip.
  */
-// tripwindow.cpp controls the interactive trip simulation.
-// It calculates the campus route using either a greedy nearest-neighbor
-// approach or an exact dynamic programming (TSP) solution, then allows
-// the user to step through the trip one campus at a time.
 
 #include "tripwindow.h"
 #include "ui_tripwindow.h"
@@ -23,6 +20,11 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QLabel>
+#include <QTableWidget>
+#include <QTableWidgetItem>
+#include <QHeaderView>
+#include <QAbstractItemView>
+#include <QIntValidator>
 
 #include <QSqlDatabase>
 #include <QSqlError>
@@ -32,8 +34,8 @@ static constexpr double BIG = 1e18;
 
 /*
  * Function: tripWindow constructor
- * Purpose : Initializes the trip window, prepares UI elements,
- *           loads distance data, and calculates the trip route.
+ * Purpose : Initializes the trip window, loads route data,
+ *           and prepares the trip simulation UI.
  */
 tripWindow::tripWindow(const QString &startCampus,
                        const QStringList &campuses,
@@ -43,17 +45,22 @@ tripWindow::tripWindow(const QString &startCampus,
     : QDialog(parent)
     , ui(new Ui::tripWindow)
     , m_start(norm(startCampus))
-    , m_maxStops(maxStops)
+    , m_maxStops(maxStops + 1)
     , m_forceExact(forceExact)
 {
     ui->setupUi(this);
+    setWindowTitle("Trip Planner");
 
-    m_goNextBtn = ui->pushButton;
+    m_goNextBtn = ui->buttNextSum;
     if (m_goNextBtn)
     {
         m_goNextBtn->setText("Go to Next College");
         connect(m_goNextBtn, &QPushButton::clicked, this, &tripWindow::onGoNextClicked);
     }
+
+    m_buyBtn = ui->buyButt;
+    if (m_buyBtn)
+        connect(m_buyBtn, &QPushButton::clicked, this, &tripWindow::onBuyClicked);
 
     QSet<QString> seen;
     for (const QString &c : campuses)
@@ -69,12 +76,11 @@ tripWindow::tripWindow(const QString &startCampus,
     if (!m_start.isEmpty() && !seen.contains(m_start))
         m_candidates.insert(m_candidates.begin(), m_start);
 
-    if (m_candidates.empty())
+    if (m_candidates.empty() && !m_start.isEmpty())
         m_candidates.push_back(m_start);
 
     if (m_maxStops < 1)
         m_maxStops = 1;
-
     if (m_maxStops > static_cast<int>(m_candidates.size()))
         m_maxStops = static_cast<int>(m_candidates.size());
 
@@ -83,7 +89,8 @@ tripWindow::tripWindow(const QString &startCampus,
     if (!ensureDbOpen())
     {
         QMessageBox::warning(this, "Database Error",
-                             "Could not open college_tour.sqlite.\nDistances will be unavailable.");
+                             "Could not open college_tour.sqlite.\n"
+                             "Distances and souvenirs may be unavailable.");
     }
 
     loadAllDistances();
@@ -109,7 +116,7 @@ tripWindow::~tripWindow()
 
 /*
  * Function: norm
- * Purpose : Normalizes campus names by trimming whitespace.
+ * Purpose : Normalizes text by trimming whitespace.
  */
 QString tripWindow::norm(const QString &s)
 {
@@ -117,23 +124,40 @@ QString tripWindow::norm(const QString &s)
 }
 
 /*
+ * Function: setReadOnly
+ * Purpose : Makes a line edit display-only so the user
+ *           cannot edit calculated values.
+ */
+void tripWindow::setReadOnly(QLineEdit *edit)
+{
+    if (!edit)
+        return;
+
+    edit->setReadOnly(true);
+    edit->setFocusPolicy(Qt::NoFocus);
+}
+
+/*
  * Function: ensureDbOpen
- * Purpose : Ensures the SQLite database connection exists and is open.
+ * Purpose : Opens the SQLite database connection used
+ *           by the trip window.
  */
 bool tripWindow::ensureDbOpen()
 {
-    QSqlDatabase db;
+    const QString connName = "tripwindow_connection";
 
-    if (QSqlDatabase::contains())
+    if (QSqlDatabase::contains(connName))
     {
-        db = QSqlDatabase::database();
+        QSqlDatabase db = QSqlDatabase::database(connName);
         if (db.isOpen())
             return true;
     }
+
+    QSqlDatabase db;
+    if (QSqlDatabase::contains(connName))
+        db = QSqlDatabase::database(connName);
     else
-    {
-        db = QSqlDatabase::addDatabase("QSQLITE");
-    }
+        db = QSqlDatabase::addDatabase("QSQLITE", connName);
 
     const QString exeDir = QCoreApplication::applicationDirPath();
     QStringList candidates;
@@ -162,30 +186,40 @@ bool tripWindow::ensureDbOpen()
         return false;
 
     db.setDatabaseName(dbPath);
-    return db.open();
+    qDebug() << "tripWindow DB path =" << dbPath;
+
+    if (!db.open())
+    {
+        qDebug() << "tripWindow DB open failed:" << db.lastError().text();
+        return false;
+    }
+
+    return true;
 }
 
 /*
  * Function: loadAllDistances
- * Purpose : Loads all campus distance values from the database
- *           into an internal distance lookup structure.
+ * Purpose : Loads all campus-to-campus distances into memory
+ *           for route planning.
  */
 void tripWindow::loadAllDistances()
 {
     m_dist.clear();
 
-    if (!QSqlDatabase::contains() || !QSqlDatabase::database().isOpen())
+    QSqlDatabase db = QSqlDatabase::database("tripwindow_connection");
+    if (!db.isOpen())
         return;
 
-    QSqlQuery q(QSqlDatabase::database());
-    q.prepare(R"(
+    QSqlQuery q(db);
+    if (!q.exec(R"(
         SELECT TRIM(from_campus), TRIM(to_campus), miles
         FROM distances
-        WHERE TRIM(from_campus) <> '' AND TRIM(to_campus) <> ''
-    )");
-
-    if (!q.exec())
+    )"))
+    {
+        QMessageBox::warning(this, "Distance Query Error",
+                             "Could not load distances:\n" + q.lastError().text());
         return;
+    }
 
     while (q.next())
     {
@@ -197,210 +231,181 @@ void tripWindow::loadAllDistances()
             continue;
 
         m_dist[a][b] = miles;
+        m_dist[b][a] = miles;
     }
 }
 
 /*
  * Function: dist
  * Purpose : Returns the distance between two campuses
- *           from the preloaded distance map.
+ *           from the in-memory distance map.
  */
 double tripWindow::dist(const QString &a, const QString &b) const
 {
-    if (a == b)
+    const QString na = norm(a);
+    const QString nb = norm(b);
+
+    if (na == nb)
         return 0.0;
 
-    const auto itA = m_dist.constFind(a);
-    if (itA == m_dist.constEnd())
-        return BIG;
+    if (m_dist.contains(na) && m_dist[na].contains(nb))
+        return m_dist[na][nb];
 
-    const auto itB = itA->constFind(b);
-    if (itB == itA->constEnd())
-        return BIG;
-
-    return *itB;
-}
-
-/*
- * Function: setReadOnly
- * Purpose : Configures a QLineEdit to display values without allowing edits.
- */
-void tripWindow::setReadOnly(QLineEdit *edit)
-{
-    if (!edit)
-        return;
-
-    edit->setReadOnly(true);
-    edit->setFocusPolicy(Qt::NoFocus);
+    return BIG;
 }
 
 /*
  * Function: buildRuntimeUi
- * Purpose : Creates runtime UI components such as the route list
- *           and summary display fields.
+ * Purpose : Connects runtime UI widgets used to display
+ *           trip progress and souvenir information.
  */
 void tripWindow::buildRuntimeUi()
 {
-    if (ui->listView)
-        ui->listView->hide();
+    if (ui->collegeDisplay)
+        ui->collegeDisplay->hide();
 
-    const QRect listRect = ui->listView
-                               ? ui->listView->geometry()
-                               : QRect(260, 30, 600, 420);
+    const QRect listRect = ui->collegeDisplay
+                               ? ui->collegeDisplay->geometry()
+                               : QRect(430, 70, 471, 271);
 
     m_routeList = new QListWidget(this);
     m_routeList->setGeometry(listRect);
 
-    auto makeEditNextTo = [&](QLabel *lbl) -> QLineEdit* {
-        if (!lbl) return nullptr;
-        const QRect r = lbl->geometry();
-        auto *e = new QLineEdit(this);
-        e->setGeometry(r.x() + r.width() + 10, r.y() - 2, 260, r.height() + 6);
-        setReadOnly(e);
-        return e;
-    };
+    m_currentEdit     = ui->lineCurrColl;
+    m_totalEdit       = ui->lineDistTrav;
+    m_souvenirCount   = ui->lineSouvPurc;
+    m_souvenirCost    = ui->lineSouvCost;
+    m_nextEdit        = ui->lineNextColl;
+    m_nextDistEdit    = ui->lineDistNext;
+    m_souvTable       = ui->souvDisplay;
 
-    m_nextEdit      = makeEditNextTo(ui->label);
-    m_nextDistEdit  = makeEditNextTo(ui->label_2);
-    m_souvenirCount = makeEditNextTo(ui->label_3);
-    m_souvenirCost  = makeEditNextTo(ui->label_4);
-    m_currentEdit   = makeEditNextTo(ui->label_5);
-    m_totalEdit     = makeEditNextTo(ui->label_6);
+    setReadOnly(m_currentEdit);
+    setReadOnly(m_totalEdit);
+    setReadOnly(m_souvenirCount);
+    setReadOnly(m_souvenirCost);
+    setReadOnly(m_nextEdit);
+    setReadOnly(m_nextDistEdit);
 
-    if (m_souvenirCount) m_souvenirCount->setText("0");
-    if (m_souvenirCost)  m_souvenirCost->setText("$0.00");
+    if (m_souvenirCount)
+        m_souvenirCount->setText("0");
+    if (m_souvenirCost)
+        m_souvenirCost->setText("$0.00");
+
+    if (m_souvTable)
+    {
+        m_souvTable->setColumnCount(4);
+        m_souvTable->setHorizontalHeaderLabels(QStringList() << "" << "Souvenir" << "Price" << "Quantity");
+        m_souvTable->setRowCount(0);
+        m_souvTable->verticalHeader()->setVisible(false);
+        m_souvTable->setSelectionMode(QAbstractItemView::NoSelection);
+        m_souvTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        m_souvTable->horizontalHeader()->setStretchLastSection(false);
+        m_souvTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+        m_souvTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+        m_souvTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+        m_souvTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
+        m_souvTable->setColumnWidth(0, 40);
+        m_souvTable->setColumnWidth(3, 80);
+    }
+}
+
+/*
+ * Function: populateRouteList
+ * Purpose : Displays the planned route in the route list widget.
+ */
+void tripWindow::populateRouteList()
+{
+    if (!m_routeList)
+        return;
+
+    m_routeList->clear();
+
+    for (size_t i = 0; i < m_route.size(); ++i)
+    {
+        if (i == 0)
+            m_routeList->addItem(QString("Start: %1").arg(m_route[i]));
+        else
+            m_routeList->addItem(QString("%1) %2").arg(static_cast<int>(i)).arg(m_route[i]));
+    }
+}
+
+/*
+ * Function: buildStepQueue
+ * Purpose : Converts the route into a queue of upcoming
+ *           trip steps.
+ */
+void tripWindow::buildStepQueue()
+{
+    while (!m_stepQueue.empty())
+        m_stepQueue.pop();
+
+    for (size_t i = 1; i < m_route.size(); ++i)
+    {
+        const QString nextCampus = m_route[i];
+        const double leg = (i - 1 < m_legs.size()) ? m_legs[i - 1] : 0.0;
+        m_stepQueue.push(std::make_pair(nextCampus, leg));
+    }
 }
 
 /*
  * Function: planNearestNeighbor
- * Purpose : Builds a route using the greedy nearest-neighbor algorithm.
+ * Purpose : Builds a route using the nearest-neighbor algorithm.
  */
 void tripWindow::planNearestNeighbor()
 {
     m_route.clear();
     m_legs.clear();
-    m_index = 0;
-    m_traveled = 0.0;
+
+    if (m_candidates.empty())
+        return;
 
     QSet<QString> visited;
+    m_route.push_back(m_start);
     visited.insert(m_start);
 
-    m_route.push_back(m_start);
     nearestStepRecursive(m_start, visited);
-
-    for (size_t i = 0; i + 1 < m_route.size(); ++i)
-        m_legs.push_back(dist(m_route[i], m_route[i + 1]));
 }
 
 /*
  * Function: nearestStepRecursive
- * Purpose : Recursively selects the closest unvisited campus
- *           until the stop limit is reached.
+ * Purpose : Recursively selects the nearest unvisited campus
+ *           until the route reaches the stop limit.
  */
 void tripWindow::nearestStepRecursive(const QString &current, QSet<QString> &visited)
 {
     if (static_cast<int>(m_route.size()) >= m_maxStops)
         return;
 
-    QString best;
-    double bestD = BIG;
+    QString bestCampus;
+    double bestDist = BIG;
 
-    for (const QString &cand : m_candidates)
+    for (const QString &candidate : m_candidates)
     {
-        if (visited.contains(cand))
+        if (visited.contains(candidate))
             continue;
 
-        const double d = dist(current, cand);
-        if (d < bestD)
+        const double d = dist(current, candidate);
+        if (d < bestDist)
         {
-            bestD = d;
-            best = cand;
+            bestDist = d;
+            bestCampus = candidate;
         }
     }
 
-    if (best.isEmpty() || bestD >= BIG/2)
+    if (bestCampus.isEmpty() || bestDist >= BIG)
         return;
 
-    visited.insert(best);
-    m_route.push_back(best);
+    visited.insert(bestCampus);
+    m_route.push_back(bestCampus);
+    m_legs.push_back(bestDist);
 
-    nearestStepRecursive(best, visited);
-}
-
-/*
- * Function: planExactDp
- * Purpose : Computes the optimal route using dynamic programming
- *           to solve the Traveling Salesman Problem.
- */
-void tripWindow::planExactDp()
-{
-    // Nodes: start first, then the rest
-    m_nodes.clear();
-    m_nodes.push_back(m_start);
-    for (const QString &c : m_candidates)
-    {
-        if (c != m_start)
-            m_nodes.push_back(c);
-    }
-
-    const int n = static_cast<int>(m_nodes.size());
-    if (n <= 1)
-    {
-        m_route = {m_start};
-        m_legs.clear();
-        return;
-    }
-
-    // Build adjacency as a vector of vector-backed BSTs (VectorBst).
-    // Each BST holds edges (destinationIndex -> miles) and is built with recursive insert().
-    m_adj.assign(n, VectorBst{});
-    for (int i = 0; i < n; ++i)
-    {
-        m_adj[static_cast<size_t>(i)].clear();
-        for (int j = 0; j < n; ++j)
-        {
-            const double d = dist(m_nodes[i], m_nodes[j]);
-            if (d < BIG / 2)
-                m_adj[static_cast<size_t>(i)].insert(j, d);
-        }
-    }
-
-    const int masks = 1 << n;
-    m_allMask = masks - 1;
-    m_memo.assign(masks, std::vector<double>(n, -1.0));
-    m_next.assign(masks, std::vector<int>(n, -1));
-
-    // Start recursion from start node only visited
-    (void)tspRecursive(1, 0);
-
-    // Reconstruct route
-    m_route.clear();
-    m_legs.clear();
-
-    int mask = 1;
-    int last = 0;
-    m_route.push_back(m_nodes[0]);
-
-    while (mask != m_allMask)
-    {
-        const int nxt = m_next[mask][last];
-        if (nxt < 0)
-            break;
-
-        m_route.push_back(m_nodes[nxt]);
-        double w = BIG;
-        (void)m_adj[static_cast<size_t>(last)].find(nxt, w);
-        m_legs.push_back(w);
-
-        mask |= (1 << nxt);
-        last = nxt;
-    }
+    nearestStepRecursive(bestCampus, visited);
 }
 
 /*
  * Function: tspRecursive
- * Purpose : Recursive helper for the DP TSP algorithm
- *           that evaluates possible route combinations.
+ * Purpose : Recursive helper for the exact dynamic programming
+ *           route calculation.
  */
 double tripWindow::tspRecursive(int mask, int last)
 {
@@ -414,24 +419,16 @@ double tripWindow::tspRecursive(int mask, int last)
     double best = BIG;
     int bestNext = -1;
 
-    m_adj[static_cast<size_t>(last)].resetQueueInOrder();
-
-    while (!m_adj[static_cast<size_t>(last)].queueEmpty())
+    for (int nxt = 0; nxt < static_cast<int>(m_nodes.size()); ++nxt)
     {
-        const auto edge = m_adj[static_cast<size_t>(last)].queuePop();
-        const int nxt = edge.first;
-        const double w = edge.second;
-
-        if (nxt < 0)
-            break;
-
         if (mask & (1 << nxt))
             continue;
 
-        if (w >= BIG/2)
+        double edge = 0.0;
+        if (!m_adj[static_cast<size_t>(last)].find(nxt, edge))
             continue;
 
-        const double cand = w + tspRecursive(mask | (1 << nxt), nxt);
+        const double cand = edge + tspRecursive(mask | (1 << nxt), nxt);
         if (cand < best)
         {
             best = cand;
@@ -445,54 +442,200 @@ double tripWindow::tspRecursive(int mask, int last)
 }
 
 /*
- * Function: buildStepQueue
- * Purpose : Converts the calculated route into a queue of
- *           step-by-step movements for the UI.
+ * Function: planExactDp
+ * Purpose : Builds the most efficient route using
+ *           dynamic programming.
  */
-void tripWindow::buildStepQueue()
+void tripWindow::planExactDp()
 {
-    while (!m_stepQueue.empty())
-        m_stepQueue.pop();
+    m_route.clear();
+    m_legs.clear();
 
-    for (size_t i = 1; i < m_route.size(); ++i)
+    if (m_candidates.empty())
+        return;
+
+    m_nodes.clear();
+    m_nodes.push_back(m_start);
+
+    for (const QString &c : m_candidates)
     {
-        const double d = (i - 1 < m_legs.size()) ? m_legs[i - 1] : 0.0;
-        m_stepQueue.push({m_route[i], d});
+        if (norm(c) != m_start)
+            m_nodes.push_back(norm(c));
+    }
+
+    if (static_cast<int>(m_nodes.size()) > m_maxStops)
+        m_nodes.resize(static_cast<size_t>(m_maxStops));
+
+    const int n = static_cast<int>(m_nodes.size());
+    if (n == 0)
+        return;
+    if (n == 1)
+    {
+        m_route.push_back(m_nodes[0]);
+        return;
+    }
+
+    m_adj.clear();
+    m_adj.resize(static_cast<size_t>(n));
+
+    for (int i = 0; i < n; ++i)
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            if (i == j)
+                continue;
+
+            const double d = dist(m_nodes[static_cast<size_t>(i)], m_nodes[static_cast<size_t>(j)]);
+            if (d < BIG)
+                m_adj[static_cast<size_t>(i)].insert(j, d);
+        }
+    }
+
+    m_allMask = (1 << n) - 1;
+    m_memo.assign(static_cast<size_t>(1 << n), std::vector<double>(static_cast<size_t>(n), -1.0));
+    m_next.assign(static_cast<size_t>(1 << n), std::vector<int>(static_cast<size_t>(n), -1));
+
+    (void)tspRecursive(1, 0);
+
+    m_route.push_back(m_nodes[0]);
+
+    int mask = 1;
+    int last = 0;
+
+    while (true)
+    {
+        const int nxt = m_next[mask][last];
+        if (nxt < 0)
+            break;
+
+        double leg = 0.0;
+        if (!m_adj[static_cast<size_t>(last)].find(nxt, leg))
+            break;
+
+        m_route.push_back(m_nodes[static_cast<size_t>(nxt)]);
+        m_legs.push_back(leg);
+
+        mask |= (1 << nxt);
+        last = nxt;
     }
 }
 
 /*
- * Function: populateRouteList
- * Purpose : Displays the calculated route in the route list widget.
+ * Function: loadSouvenirsForCurrentCollege
+ * Purpose : Loads the currently available souvenirs for
+ *           the campus the user is visiting.
  */
-void tripWindow::populateRouteList()
+void tripWindow::loadSouvenirsForCurrentCollege()
 {
-    if (!m_routeList)
+    if (!m_souvTable)
         return;
 
-    m_routeList->clear();
+    m_souvTable->clearContents();
+    m_souvTable->setRowCount(0);
 
-    for (size_t i = 0; i < m_route.size(); ++i)
+    if (m_index < 0 || m_index >= static_cast<int>(m_route.size()))
+        return;
+
+    QSqlDatabase db = QSqlDatabase::database("tripwindow_connection");
+    if (!db.isOpen())
+        return;
+
+    const QString campus = norm(m_route[static_cast<size_t>(m_index)]);
+
+    QSqlQuery q(db);
+    q.prepare(R"(
+        SELECT TRIM(s.item), s.price
+        FROM souvenirs s
+        LEFT JOIN souvenir_access sa
+          ON TRIM(sa.campus) = TRIM(s.campus)
+         AND TRIM(sa.item)   = TRIM(s.item)
+        WHERE TRIM(s.campus) = :campus
+          AND (sa.enabled = 1 OR sa.enabled IS NULL)
+          AND TRIM(s.item) <> ''
+        ORDER BY TRIM(s.item) ASC
+    )");
+    q.bindValue(":campus", campus);
+
+    if (!q.exec())
+        return;
+
+    int row = 0;
+    while (q.next())
     {
-        if (i == 0)
-        {
-            m_routeList->addItem(QString("Start: %1").arg(m_route[i]));
-        }
-        else
-        {
-            const double d = (i - 1 < m_legs.size()) ? m_legs[i - 1] : 0.0;
-            m_routeList->addItem(QString("%1) %2  (+%3 miles)")
-                                     .arg(static_cast<int>(i))
-                                     .arg(m_route[i])
-                                     .arg(d, 0, 'f', 1));
-        }
+        const QString itemName = q.value(0).toString().trimmed();
+        const double price = q.value(1).toDouble();
+
+        m_souvTable->insertRow(row);
+
+        QTableWidgetItem *checkItem = new QTableWidgetItem;
+        checkItem->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
+        checkItem->setCheckState(Qt::Unchecked);
+        checkItem->setText("");
+        checkItem->setData(Qt::UserRole, itemName);
+        checkItem->setData(Qt::UserRole + 1, price);
+
+        QTableWidgetItem *nameItem = new QTableWidgetItem(itemName);
+        nameItem->setFlags(Qt::ItemIsEnabled);
+
+        QTableWidgetItem *priceItem =
+            new QTableWidgetItem(QString("$%1").arg(price, 0, 'f', 2));
+        priceItem->setFlags(Qt::ItemIsEnabled);
+
+        QLineEdit *qtyEdit = new QLineEdit(this);
+        qtyEdit->setText("1");
+        qtyEdit->setAlignment(Qt::AlignCenter);
+        qtyEdit->setValidator(new QIntValidator(1, 9999, qtyEdit));
+
+        m_souvTable->setItem(row, 0, checkItem);
+        m_souvTable->setItem(row, 1, nameItem);
+        m_souvTable->setItem(row, 2, priceItem);
+        m_souvTable->setCellWidget(row, 3, qtyEdit);
+
+        ++row;
+    }
+}
+
+/*
+ * Function: updateSouvenirTotals
+ * Purpose : Updates the total number and total cost of
+ *           purchased souvenirs shown in the UI.
+ */
+void tripWindow::updateSouvenirTotals()
+{
+    if (m_souvenirCount)
+        m_souvenirCount->setText(QString::number(m_totalSouvenirCount));
+
+    if (m_souvenirCost)
+        m_souvenirCost->setText(QString("$%1").arg(m_totalSouvenirCost, 0, 'f', 2));
+}
+
+/*
+ * Function: clearSouvenirChecks
+ * Purpose : Clears all selected souvenir checkboxes and
+ *           resets quantities back to 1.
+ */
+void tripWindow::clearSouvenirChecks()
+{
+    if (!m_souvTable)
+        return;
+
+    for (int row = 0; row < m_souvTable->rowCount(); ++row)
+    {
+        QTableWidgetItem *item = m_souvTable->item(row, 0);
+        if (item)
+            item->setCheckState(Qt::Unchecked);
+
+        QWidget *cell = m_souvTable->cellWidget(row, 3);
+        QLineEdit *qtyEdit = qobject_cast<QLineEdit*>(cell);
+        if (qtyEdit)
+            qtyEdit->setText("1");
     }
 }
 
 /*
  * Function: refreshUi
- * Purpose : Updates the trip progress display as the user moves
- *           to the next campus.
+ * Purpose : Updates the current campus, next campus,
+ *           total distance, and souvenir displays.
  */
 void tripWindow::refreshUi()
 {
@@ -502,44 +645,131 @@ void tripWindow::refreshUi()
     if (m_index < 0 || m_index >= static_cast<int>(m_route.size()))
         return;
 
-    m_currentEdit->setText(m_route[m_index]);
+    m_currentEdit->setText(m_route[static_cast<size_t>(m_index)]);
     m_totalEdit->setText(QString::number(m_traveled, 'f', 1));
+
+    updateSouvenirTotals();
+    loadSouvenirsForCurrentCollege();
 
     if (!m_stepQueue.empty())
     {
         const auto &front = m_stepQueue.front();
         m_nextEdit->setText(front.first);
         m_nextDistEdit->setText(QString::number(front.second, 'f', 1));
-        if (m_goNextBtn) m_goNextBtn->setText("Go to Next College");
+        if (m_goNextBtn)
+            m_goNextBtn->setText("Go to Next College");
     }
     else
     {
         m_nextEdit->setText("N/A");
         m_nextDistEdit->setText("0.0");
-        if (m_goNextBtn) m_goNextBtn->setText("Finish Tour");
+        if (m_goNextBtn)
+            m_goNextBtn->setText("Finish Tour");
     }
 }
 
 /*
+ * Function: onBuyClicked
+ * Purpose : Records souvenir purchases selected by the user
+ *           at the current campus and updates totals.
+ */
+void tripWindow::onBuyClicked()
+{
+    if (!m_souvTable)
+        return;
+
+    if (m_index < 0 || m_index >= static_cast<int>(m_route.size()))
+        return;
+
+    const QString currentCollege = norm(m_route[static_cast<size_t>(m_index)]);
+
+    int boughtThisClick = 0;
+    double costThisClick = 0.0;
+
+    for (int row = 0; row < m_souvTable->rowCount(); ++row)
+    {
+        QTableWidgetItem *checkItem = m_souvTable->item(row, 0);
+        if (!checkItem || checkItem->checkState() != Qt::Checked)
+            continue;
+
+        QLineEdit *qtyEdit =
+            qobject_cast<QLineEdit*>(m_souvTable->cellWidget(row, 3));
+
+        int quantity = 1;
+        if (qtyEdit)
+        {
+            quantity = qtyEdit->text().trimmed().toInt();
+        }
+
+        if (quantity <= 0)
+            continue;
+
+        const QString souvenirName = checkItem->data(Qt::UserRole).toString().trimmed();
+        const double price = checkItem->data(Qt::UserRole + 1).toDouble();
+
+        for (int i = 0; i < quantity; ++i)
+        {
+            Souvenir s;
+            s.college = currentCollege;
+            s.name = souvenirName;
+            s.price = price;
+            s.quantity = 1;
+            m_purchasedSouvenirs.push(s);
+        }
+
+        boughtThisClick += quantity;
+        costThisClick += price * quantity;
+    }
+
+    if (boughtThisClick == 0)
+    {
+        QMessageBox::information(this, "No Purchase",
+                                 "Please check at least one souvenir and enter a valid quantity.");
+        return;
+    }
+
+    m_totalSouvenirCount += boughtThisClick;
+    m_totalSouvenirCost += costThisClick;
+
+    updateSouvenirTotals();
+    clearSouvenirChecks();
+}
+
+/*
  * Function: onGoNextClicked
- * Purpose : Advances the trip to the next campus or opens
- *           the final summary window when the trip is complete.
+ * Purpose : Moves to the next campus in the trip or opens
+ *           the summary window when the trip is complete.
  */
 void tripWindow::onGoNextClicked()
 {
     if (!m_stepQueue.empty())
     {
-        const auto step = m_stepQueue.front();
+        const auto nextStep = m_stepQueue.front();
         m_stepQueue.pop();
 
         ++m_index;
-        m_traveled += step.second;
+        m_traveled += nextStep.second;
 
         refreshUi();
         return;
     }
 
-    summaryWindow dlg(m_route, m_legs, m_traveled, this);
+    std::queue<Souvenir> copy = m_purchasedSouvenirs;
+    std::vector<summaryWindow::PurchasedSouvenir> purchasesForSummary;
+
+    while (!copy.empty())
+    {
+        const Souvenir s = copy.front();
+        copy.pop();
+
+        summaryWindow::PurchasedSouvenir out;
+        out.college = s.college;
+        out.name = s.name;
+        out.price = s.price;
+        purchasesForSummary.push_back(out);
+    }
+
+    summaryWindow dlg(m_route, m_legs, m_traveled, purchasesForSummary, this);
     dlg.setModal(true);
     dlg.exec();
 

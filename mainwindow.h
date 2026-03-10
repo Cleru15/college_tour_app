@@ -2,33 +2,35 @@
  * @file mainwindow.h
  * @brief Defines the MainWindow class.
  *
- * MainWindow acts as the main hub of the application where the user
- * can preview souvenirs, view campus distances, or start a campus trip.
+ * The MainWindow acts as the main hub of the application.
+ * From this window the user can preview souvenirs, view
+ * campus distances, start a basic trip, or create a custom trip.
  */
-
-// mainwindow.h defines the MainWindow class.
-// This window acts as the central hub of the application where the user can:
-// preview souvenirs, view campus distances, or start a Basic or Custom trip.
 
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSqlDatabase>
+#include <QResizeEvent>
 
+// Forward declaration for the UI class generated from mainwindow.ui
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-// Forward declarations for Qt classes used as pointers
+// Forward declarations to reduce compile dependencies
 class QComboBox;
 class QTableView;
 class QSqlQueryModel;
 
 /*
  * Class: MainWindow
- * Purpose: Provides the main interface of the application.
- *          It allows users to preview souvenirs, view campus
- *          distances, and launch trip planning windows.
+ * Purpose: Serves as the central interface of the application.
+ *
+ * Users can navigate to different features such as viewing
+ * campus distances, previewing souvenirs, or launching
+ * trip planning windows.
  */
 class MainWindow : public QMainWindow
 {
@@ -37,95 +39,135 @@ class MainWindow : public QMainWindow
 public:
 
     /*
-     * Constructor
-     * Purpose: Initializes the main application window
-     *          and builds the primary UI components.
+     * Function: MainWindow constructor
+     * Purpose : Initializes the main window and prepares
+     *           all UI components and database connections.
      */
     explicit MainWindow(QWidget *parent = nullptr);
 
     /*
-     * Destructor
-     * Purpose: Cleans up UI resources when the window closes.
+     * Function: ~MainWindow
+     * Purpose : Cleans up UI resources when the window closes.
      */
     ~MainWindow();
 
 private slots:
 
     /*
-     * Slot: previewSouvenirButtonClick
-     * Purpose: Opens the souvenir preview window for the
-     *          selected campus.
+     * Function: previewSouvenirButtonClick
+     * Purpose : Opens the souvenir preview window for
+     *           the selected campus.
      */
     void previewSouvenirButtonClick();
 
     /*
-     * Slot: cancelButtonClick
-     * Purpose: Exits the application when the cancel button
-     *          is pressed.
+     * Function: cancelButtonClick
+     * Purpose : Closes the application when the cancel
+     *           button is pressed.
      */
     void cancelButtonClick();
 
     /*
-     * Slot: on_submitButtonSouvenirPreview_2_clicked
-     * Purpose: Displays campus distances from the selected
-     *          starting campus.
+     * Function: on_buttonDistancesSubmit_clicked
+     * Purpose : Displays the distances from the selected
+     *           campus to other campuses.
      */
-    void on_submitButtonSouvenirPreview_2_clicked(); // Show distances
+    void on_buttonDistancesSubmit_clicked();
 
     /*
-     * Slot: on_submitButtonSouvenirPreview_3_clicked
-     * Purpose: Opens the Basic Trip setup window.
+     * Function: on_buttonBasicTrip_clicked
+     * Purpose : Opens the Basic Trip planning window.
      */
-    void on_submitButtonSouvenirPreview_3_clicked(); // Basic Trip
+    void on_buttonBasicTrip_clicked();
 
     /*
-     * Slot: on_submitButtonSouvenirPreview_4_clicked
-     * Purpose: Opens the Custom Trip setup window.
+     * Function: on_buttonCustomTrip_clicked
+     * Purpose : Opens the Custom Trip planning window.
      */
-    void on_submitButtonSouvenirPreview_4_clicked(); // Custom Trip
+    void on_buttonCustomTrip_clicked();
+
+    /*
+     * Function: on_pushButton_clicked
+     * Purpose : Handles additional button interactions
+     *           defined in the UI.
+     */
+    void on_pushButton_clicked();
+
+protected:
+
+    /*
+     * Function: resizeEvent
+     * Purpose : Handles window resize events to adjust
+     *           table column sizes dynamically.
+     */
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
 
-    // Pointer to the UI generated from mainwindow.ui
-    Ui::MainWindow *ui;
+    // Pointer to UI elements generated from mainwindow.ui
+    Ui::MainWindow *ui = nullptr;
+
+    // SQLite database connection used by the application
+    QSqlDatabase m_db;
 
     /*
      * Function: ensureDbOpen
-     * Purpose : Ensures the SQLite database connection exists
-     *           and is open before executing queries.
+     * Purpose : Ensures the SQLite database connection
+     *           is open before running queries.
      */
     bool ensureDbOpen();
 
     /*
+     * Function: populateSouvenirCampusCombo
+     * Purpose : Loads the campus list into the souvenir
+     *           preview dropdown menu.
+     */
+    void populateSouvenirCampusCombo();
+
+    /*
      * Function: setupDistanceUi
-     * Purpose : Creates the campus distance table view
-     *           and connects it to the database model.
+     * Purpose : Initializes the distance display table
+     *           used for showing campus-to-campus distances.
      */
     void setupDistanceUi();
 
     /*
      * Function: populateStartingCampusCombo
-     * Purpose : Loads campus names from the database
-     *           into the starting campus dropdown.
+     * Purpose : Loads the campus dropdown used for
+     *           selecting a starting campus.
      */
     void populateStartingCampusCombo();
 
     /*
      * Function: loadDistancesForCampus
-     * Purpose : Queries and displays distances from the
-     *           selected campus in the table view.
+     * Purpose : Queries the database and displays distances
+     *           from the selected campus to other campuses.
      */
     void loadDistancesForCampus(const QString &fromCampus);
 
+    /*
+     * Function: loadSouvenirsForCampus
+     * Purpose : Retrieves and displays souvenirs for
+     *           the selected campus.
+     */
+    void loadSouvenirsForCampus(const QString &campus);
+
+    /*
+     * Function: resizeDistanceTableColumns
+     * Purpose : Adjusts the distance table columns when
+     *           the window is resized.
+     */
+    void resizeDistanceTableColumns();
+
 private:
 
-    // Dropdown used to select the campus for distance queries
+    // Dropdown used to select the starting campus for distance queries
     QComboBox *m_fromCampusCombo = nullptr;
 
-    // Table used to display campus distance results
+    // Table view used to display campus distances
     QTableView *m_distanceTable = nullptr;
 
-    // Model that stores SQL query results for the table view
+    // Model storing query results for the distance table
     QSqlQueryModel *m_distanceModel = nullptr;
 };
 

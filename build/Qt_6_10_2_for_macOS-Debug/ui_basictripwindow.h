@@ -30,6 +30,8 @@ public:
     QComboBox *selectStartingCollegeDropdownBT;
     QLabel *selectStartingCollegeLabelBT;
     QLabel *numCollegestoVisitLabelBT;
+    QPushButton *backButtonBT;
+    QLabel *titleBT;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -37,30 +39,42 @@ public:
     {
         if (BasicTripWindow->objectName().isEmpty())
             BasicTripWindow->setObjectName("BasicTripWindow");
-        BasicTripWindow->resize(954, 625);
+        BasicTripWindow->resize(241, 339);
         centralwidget = new QWidget(BasicTripWindow);
         centralwidget->setObjectName("centralwidget");
         startTripButtonBT = new QPushButton(centralwidget);
         startTripButtonBT->setObjectName("startTripButtonBT");
-        startTripButtonBT->setGeometry(QRect(80, 190, 80, 25));
+        startTripButtonBT->setGeometry(QRect(80, 210, 80, 25));
         numCollegestoVisitDropdownBT = new QComboBox(centralwidget);
         numCollegestoVisitDropdownBT->setObjectName("numCollegestoVisitDropdownBT");
-        numCollegestoVisitDropdownBT->setGeometry(QRect(45, 140, 150, 25));
+        numCollegestoVisitDropdownBT->setGeometry(QRect(45, 160, 150, 25));
         selectStartingCollegeDropdownBT = new QComboBox(centralwidget);
         selectStartingCollegeDropdownBT->setObjectName("selectStartingCollegeDropdownBT");
-        selectStartingCollegeDropdownBT->setGeometry(QRect(45, 70, 161, 25));
+        selectStartingCollegeDropdownBT->setGeometry(QRect(45, 90, 161, 25));
         selectStartingCollegeLabelBT = new QLabel(centralwidget);
         selectStartingCollegeLabelBT->setObjectName("selectStartingCollegeLabelBT");
-        selectStartingCollegeLabelBT->setGeometry(QRect(45, 50, 171, 16));
+        selectStartingCollegeLabelBT->setGeometry(QRect(45, 70, 171, 16));
         selectStartingCollegeLabelBT->setAlignment(Qt::AlignmentFlag::AlignCenter);
         numCollegestoVisitLabelBT = new QLabel(centralwidget);
         numCollegestoVisitLabelBT->setObjectName("numCollegestoVisitLabelBT");
-        numCollegestoVisitLabelBT->setGeometry(QRect(45, 120, 191, 20));
+        numCollegestoVisitLabelBT->setGeometry(QRect(20, 140, 191, 20));
         numCollegestoVisitLabelBT->setAlignment(Qt::AlignmentFlag::AlignCenter);
+        backButtonBT = new QPushButton(centralwidget);
+        backButtonBT->setObjectName("backButtonBT");
+        backButtonBT->setGeometry(QRect(80, 250, 80, 25));
+        titleBT = new QLabel(centralwidget);
+        titleBT->setObjectName("titleBT");
+        titleBT->setGeometry(QRect(10, 20, 211, 31));
+        QFont font;
+        font.setPointSize(15);
+        font.setBold(true);
+        font.setItalic(true);
+        titleBT->setFont(font);
+        titleBT->setAlignment(Qt::AlignmentFlag::AlignCenter);
         BasicTripWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(BasicTripWindow);
         menubar->setObjectName("menubar");
-        menubar->setGeometry(QRect(0, 0, 954, 25));
+        menubar->setGeometry(QRect(0, 0, 241, 21));
         BasicTripWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(BasicTripWindow);
         statusbar->setObjectName("statusbar");
@@ -76,7 +90,9 @@ public:
         BasicTripWindow->setWindowTitle(QCoreApplication::translate("BasicTripWindow", "MainWindow", nullptr));
         startTripButtonBT->setText(QCoreApplication::translate("BasicTripWindow", "Start Trip", nullptr));
         selectStartingCollegeLabelBT->setText(QCoreApplication::translate("BasicTripWindow", "Select Starting College:", nullptr));
-        numCollegestoVisitLabelBT->setText(QCoreApplication::translate("BasicTripWindow", "Number of Colleges to Visit:", nullptr));
+        numCollegestoVisitLabelBT->setText(QCoreApplication::translate("BasicTripWindow", "Number of Other Colleges to Visit:", nullptr));
+        backButtonBT->setText(QCoreApplication::translate("BasicTripWindow", "Back", nullptr));
+        titleBT->setText(QCoreApplication::translate("BasicTripWindow", "Plan a Basic Tour", nullptr));
     } // retranslateUi
 
 };

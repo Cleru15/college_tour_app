@@ -52,32 +52,57 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = ../../basictripwindow.cpp \
+SOURCES       = ../../admin.cpp \
+		../../adminaddsouvenir.cpp \
+		../../adminchangeprice.cpp \
+		../../admindeletesouvenir.cpp \
+		../../basictripwindow.cpp \
 		../../customtripwindow.cpp \
+		../../login.cpp \
 		../../main.cpp \
 		../../mainwindow.cpp \
-		../../newwindow.cpp \
+		../../modcolleges.cpp \
+		../../modsouvenirs.cpp \
 		../../summarywindow.cpp \
-		../../tripwindow.cpp moc_basictripwindow.cpp \
+		../../tripwindow.cpp moc_admin.cpp \
+		moc_adminaddsouvenir.cpp \
+		moc_adminchangeprice.cpp \
+		moc_admindeletesouvenir.cpp \
+		moc_basictripwindow.cpp \
 		moc_customtripwindow.cpp \
+		moc_login.cpp \
 		moc_mainwindow.cpp \
-		moc_newwindow.cpp \
+		moc_modcolleges.cpp \
+		moc_modsouvenirs.cpp \
 		moc_summarywindow.cpp \
 		moc_tripwindow.cpp
-OBJECTS       = basictripwindow.o \
+OBJECTS       = admin.o \
+		adminaddsouvenir.o \
+		adminchangeprice.o \
+		admindeletesouvenir.o \
+		basictripwindow.o \
 		customtripwindow.o \
+		login.o \
 		main.o \
 		mainwindow.o \
-		newwindow.o \
+		modcolleges.o \
+		modsouvenirs.o \
 		summarywindow.o \
 		tripwindow.o \
+		moc_admin.o \
+		moc_adminaddsouvenir.o \
+		moc_adminchangeprice.o \
+		moc_admindeletesouvenir.o \
 		moc_basictripwindow.o \
 		moc_customtripwindow.o \
+		moc_login.o \
 		moc_mainwindow.o \
-		moc_newwindow.o \
+		moc_modcolleges.o \
+		moc_modsouvenirs.o \
 		moc_summarywindow.o \
 		moc_tripwindow.o
 DIST          = ../../college_tour.sqlite \
+		../../college_tour.sqlite \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/spec_pre.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/device_config.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/common/unix.conf \
@@ -323,16 +348,28 @@ DIST          = ../../college_tour.sqlite \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/exceptions.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/yacc.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/lex.prf \
-		../../../../Campus.pro ../../basictripwindow.h \
+		../../../../Campus.pro ../../admin.h \
+		../../adminaddsouvenir.h \
+		../../adminchangeprice.h \
+		../../admindeletesouvenir.h \
+		../../basictripwindow.h \
 		../../customtripwindow.h \
+		../../login.h \
 		../../mainwindow.h \
-		../../newwindow.h \
+		../../modcolleges.h \
+		../../modsouvenirs.h \
 		../../summarywindow.h \
-		../../tripwindow.h ../../basictripwindow.cpp \
+		../../tripwindow.h ../../admin.cpp \
+		../../adminaddsouvenir.cpp \
+		../../adminchangeprice.cpp \
+		../../admindeletesouvenir.cpp \
+		../../basictripwindow.cpp \
 		../../customtripwindow.cpp \
+		../../login.cpp \
 		../../main.cpp \
 		../../mainwindow.cpp \
-		../../newwindow.cpp \
+		../../modcolleges.cpp \
+		../../modsouvenirs.cpp \
 		../../summarywindow.cpp \
 		../../tripwindow.cpp
 QMAKE_TARGET  = Campus
@@ -355,7 +392,7 @@ include /Users/cleru/Qt/6.10.2/macos/mkspecs/features/mac/sdk.mk
 first: all
 ####### Build rules
 
-Campus.app/Contents/MacOS/Campus: ui_basictripwindow.h ui_customtripwindow.h ui_mainwindow.h ui_newwindow.h ui_summarywindow.h ui_tripwindow.h $(OBJECTS)  
+Campus.app/Contents/MacOS/Campus: ui_admin.h ui_adminaddsouvenir.h ui_adminchangeprice.h ui_admindeletesouvenir.h ui_basictripwindow.h ui_customtripwindow.h ui_login.h ui_mainwindow.h ui_modcolleges.h ui_modsouvenirs.h ui_summarywindow.h ui_tripwindow.h $(OBJECTS)  
 	@test -d Campus.app/Contents/MacOS/ || mkdir -p Campus.app/Contents/MacOS/
 	$(LINK) $(LFLAGS) -o $(TARGET)  $(OBJECTS) $(OBJCOMP) $(LIBS)
 
@@ -892,9 +929,9 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents ../../basictripwindow.h ../../customtripwindow.h ../../mainwindow.h ../../newwindow.h ../../summarywindow.h ../../tripwindow.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../../basictripwindow.cpp ../../customtripwindow.cpp ../../main.cpp ../../mainwindow.cpp ../../newwindow.cpp ../../summarywindow.cpp ../../tripwindow.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../../basictripwindow.ui ../../customtripwindow.ui ../../mainwindow.ui ../../newwindow.ui ../../summarywindow.ui ../../tripwindow.ui $(DISTDIR)/
+	$(COPY_FILE) --parents ../../admin.h ../../adminaddsouvenir.h ../../adminchangeprice.h ../../admindeletesouvenir.h ../../basictripwindow.h ../../customtripwindow.h ../../login.h ../../mainwindow.h ../../modcolleges.h ../../modsouvenirs.h ../../summarywindow.h ../../tripwindow.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../../admin.cpp ../../adminaddsouvenir.cpp ../../adminchangeprice.cpp ../../admindeletesouvenir.cpp ../../basictripwindow.cpp ../../customtripwindow.cpp ../../login.cpp ../../main.cpp ../../mainwindow.cpp ../../modcolleges.cpp ../../modsouvenirs.cpp ../../summarywindow.cpp ../../tripwindow.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../../admin.ui ../../adminaddsouvenir.ui ../../adminchangeprice.ui ../../admindeletesouvenir.ui ../../basictripwindow.ui ../../customtripwindow.ui ../../login.ui ../../mainwindow.ui ../../modcolleges.ui ../../modsouvenirs.ui ../../summarywindow.ui ../../tripwindow.ui $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -923,9 +960,37 @@ benchmark: first
 
 compiler_rcc_make_all:
 compiler_rcc_clean:
-compiler_moc_header_make_all: moc_basictripwindow.cpp moc_customtripwindow.cpp moc_mainwindow.cpp moc_newwindow.cpp moc_summarywindow.cpp moc_tripwindow.cpp
+compiler_moc_header_make_all: moc_admin.cpp moc_adminaddsouvenir.cpp moc_adminchangeprice.cpp moc_admindeletesouvenir.cpp moc_basictripwindow.cpp moc_customtripwindow.cpp moc_login.cpp moc_mainwindow.cpp moc_modcolleges.cpp moc_modsouvenirs.cpp moc_summarywindow.cpp moc_tripwindow.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_basictripwindow.cpp moc_customtripwindow.cpp moc_mainwindow.cpp moc_newwindow.cpp moc_summarywindow.cpp moc_tripwindow.cpp
+	-$(DEL_FILE) moc_admin.cpp moc_adminaddsouvenir.cpp moc_adminchangeprice.cpp moc_admindeletesouvenir.cpp moc_basictripwindow.cpp moc_customtripwindow.cpp moc_login.cpp moc_mainwindow.cpp moc_modcolleges.cpp moc_modsouvenirs.cpp moc_summarywindow.cpp moc_tripwindow.cpp
+moc_admin.cpp: ../../admin.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
+		/Users/cleru/Qt/6.10.2/macos/libexec/moc
+	/Users/cleru/Qt/6.10.2/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=201402L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=17 -D__clang_minor__=0 -D__clang_patchlevel__=0 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang -I'/Users/cleru/Desktop/Qt Projects/Campus' -I/Users/cleru/Qt/6.10.2/macos/lib/QtQuick.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtOpenGL.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtQml.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/include -I/Users/cleru/Qt/6.10.2/macos/include/QtQmlIntegration -I/Users/cleru/Qt/6.10.2/macos/lib/QtNetwork.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/cleru/Qt/6.10.2/macos/lib ../../admin.h -o moc_admin.cpp
+
+moc_adminaddsouvenir.cpp: ../../adminaddsouvenir.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QWidget \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
+		/Users/cleru/Qt/6.10.2/macos/libexec/moc
+	/Users/cleru/Qt/6.10.2/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=201402L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=17 -D__clang_minor__=0 -D__clang_patchlevel__=0 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang -I'/Users/cleru/Desktop/Qt Projects/Campus' -I/Users/cleru/Qt/6.10.2/macos/lib/QtQuick.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtOpenGL.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtQml.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/include -I/Users/cleru/Qt/6.10.2/macos/include/QtQmlIntegration -I/Users/cleru/Qt/6.10.2/macos/lib/QtNetwork.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/cleru/Qt/6.10.2/macos/lib ../../adminaddsouvenir.h -o moc_adminaddsouvenir.cpp
+
+moc_adminchangeprice.cpp: ../../adminchangeprice.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QWidget \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
+		/Users/cleru/Qt/6.10.2/macos/libexec/moc
+	/Users/cleru/Qt/6.10.2/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=201402L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=17 -D__clang_minor__=0 -D__clang_patchlevel__=0 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang -I'/Users/cleru/Desktop/Qt Projects/Campus' -I/Users/cleru/Qt/6.10.2/macos/lib/QtQuick.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtOpenGL.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtQml.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/include -I/Users/cleru/Qt/6.10.2/macos/include/QtQmlIntegration -I/Users/cleru/Qt/6.10.2/macos/lib/QtNetwork.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/cleru/Qt/6.10.2/macos/lib ../../adminchangeprice.h -o moc_adminchangeprice.cpp
+
+moc_admindeletesouvenir.cpp: ../../admindeletesouvenir.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QWidget \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		/Users/cleru/Qt/6.10.2/macos/libexec/moc
+	/Users/cleru/Qt/6.10.2/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=201402L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=17 -D__clang_minor__=0 -D__clang_patchlevel__=0 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang -I'/Users/cleru/Desktop/Qt Projects/Campus' -I/Users/cleru/Qt/6.10.2/macos/lib/QtQuick.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtOpenGL.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtQml.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/include -I/Users/cleru/Qt/6.10.2/macos/include/QtQmlIntegration -I/Users/cleru/Qt/6.10.2/macos/lib/QtNetwork.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/cleru/Qt/6.10.2/macos/lib ../../admindeletesouvenir.h -o moc_admindeletesouvenir.cpp
+
 moc_basictripwindow.cpp: ../../basictripwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMainWindow \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmainwindow.h \
@@ -938,23 +1003,41 @@ moc_customtripwindow.cpp: ../../customtripwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/libexec/moc
 	/Users/cleru/Qt/6.10.2/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=201402L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=17 -D__clang_minor__=0 -D__clang_patchlevel__=0 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang -I'/Users/cleru/Desktop/Qt Projects/Campus' -I/Users/cleru/Qt/6.10.2/macos/lib/QtQuick.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtOpenGL.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtQml.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/include -I/Users/cleru/Qt/6.10.2/macos/include/QtQmlIntegration -I/Users/cleru/Qt/6.10.2/macos/lib/QtNetwork.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/cleru/Qt/6.10.2/macos/lib ../../customtripwindow.h -o moc_customtripwindow.cpp
 
+moc_login.cpp: ../../login.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
+		/Users/cleru/Qt/6.10.2/macos/libexec/moc
+	/Users/cleru/Qt/6.10.2/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=201402L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=17 -D__clang_minor__=0 -D__clang_patchlevel__=0 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang -I'/Users/cleru/Desktop/Qt Projects/Campus' -I/Users/cleru/Qt/6.10.2/macos/lib/QtQuick.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtOpenGL.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtQml.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/include -I/Users/cleru/Qt/6.10.2/macos/include/QtQmlIntegration -I/Users/cleru/Qt/6.10.2/macos/lib/QtNetwork.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/cleru/Qt/6.10.2/macos/lib ../../login.h -o moc_login.cpp
+
 moc_mainwindow.cpp: ../../mainwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMainWindow \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmainwindow.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/QResizeEvent \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/qevent.h \
 		/Users/cleru/Qt/6.10.2/macos/libexec/moc
 	/Users/cleru/Qt/6.10.2/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=201402L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=17 -D__clang_minor__=0 -D__clang_patchlevel__=0 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang -I'/Users/cleru/Desktop/Qt Projects/Campus' -I/Users/cleru/Qt/6.10.2/macos/lib/QtQuick.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtOpenGL.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtQml.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/include -I/Users/cleru/Qt/6.10.2/macos/include/QtQmlIntegration -I/Users/cleru/Qt/6.10.2/macos/lib/QtNetwork.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/cleru/Qt/6.10.2/macos/lib ../../mainwindow.h -o moc_mainwindow.cpp
 
-moc_newwindow.cpp: ../../newwindow.h \
+moc_modcolleges.cpp: ../../modcolleges.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
 		/Users/cleru/Qt/6.10.2/macos/libexec/moc
-	/Users/cleru/Qt/6.10.2/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=201402L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=17 -D__clang_minor__=0 -D__clang_patchlevel__=0 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang -I'/Users/cleru/Desktop/Qt Projects/Campus' -I/Users/cleru/Qt/6.10.2/macos/lib/QtQuick.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtOpenGL.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtQml.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/include -I/Users/cleru/Qt/6.10.2/macos/include/QtQmlIntegration -I/Users/cleru/Qt/6.10.2/macos/lib/QtNetwork.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/cleru/Qt/6.10.2/macos/lib ../../newwindow.h -o moc_newwindow.cpp
+	/Users/cleru/Qt/6.10.2/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=201402L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=17 -D__clang_minor__=0 -D__clang_patchlevel__=0 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang -I'/Users/cleru/Desktop/Qt Projects/Campus' -I/Users/cleru/Qt/6.10.2/macos/lib/QtQuick.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtOpenGL.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtQml.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/include -I/Users/cleru/Qt/6.10.2/macos/include/QtQmlIntegration -I/Users/cleru/Qt/6.10.2/macos/lib/QtNetwork.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/cleru/Qt/6.10.2/macos/lib ../../modcolleges.h -o moc_modcolleges.cpp
+
+moc_modsouvenirs.cpp: ../../modsouvenirs.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
+		/Users/cleru/Qt/6.10.2/macos/libexec/moc
+	/Users/cleru/Qt/6.10.2/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=201402L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=17 -D__clang_minor__=0 -D__clang_patchlevel__=0 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang -I'/Users/cleru/Desktop/Qt Projects/Campus' -I/Users/cleru/Qt/6.10.2/macos/lib/QtQuick.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtOpenGL.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtQml.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/include -I/Users/cleru/Qt/6.10.2/macos/include/QtQmlIntegration -I/Users/cleru/Qt/6.10.2/macos/lib/QtNetwork.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/cleru/Qt/6.10.2/macos/lib ../../modsouvenirs.h -o moc_modsouvenirs.cpp
 
 moc_summarywindow.cpp: ../../summarywindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
 		/Users/cleru/Qt/6.10.2/macos/libexec/moc
 	/Users/cleru/Qt/6.10.2/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=201402L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=17 -D__clang_minor__=0 -D__clang_patchlevel__=0 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang -I'/Users/cleru/Desktop/Qt Projects/Campus' -I/Users/cleru/Qt/6.10.2/macos/lib/QtQuick.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtOpenGL.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtQml.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/include -I/Users/cleru/Qt/6.10.2/macos/include/QtQmlIntegration -I/Users/cleru/Qt/6.10.2/macos/lib/QtNetwork.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/cleru/Qt/6.10.2/macos/lib ../../summarywindow.h -o moc_summarywindow.cpp
 
@@ -965,6 +1048,8 @@ moc_tripwindow.cpp: ../../tripwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qhash.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QSet \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qset.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
 		/Users/cleru/Qt/6.10.2/macos/libexec/moc
 	/Users/cleru/Qt/6.10.2/macos/libexec/moc $(DEFINES) -D__APPLE__ -D__GNUC__=4 -D__APPLE_CC__ -D__cplusplus=201402L -D__APPLE_CC__=6000 -D__clang__ -D__clang_major__=17 -D__clang_minor__=0 -D__clang_patchlevel__=0 -D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1 -I/Users/cleru/Qt/6.10.2/macos/mkspecs/macx-clang -I'/Users/cleru/Desktop/Qt Projects/Campus' -I/Users/cleru/Qt/6.10.2/macos/lib/QtQuick.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtOpenGL.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtQml.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/include -I/Users/cleru/Qt/6.10.2/macos/include/QtQmlIntegration -I/Users/cleru/Qt/6.10.2/macos/lib/QtNetwork.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers -I/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/Users/cleru/Qt/6.10.2/macos/lib ../../tripwindow.h -o moc_tripwindow.cpp
 
@@ -972,9 +1057,25 @@ compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
-compiler_uic_make_all: ui_basictripwindow.h ui_customtripwindow.h ui_mainwindow.h ui_newwindow.h ui_summarywindow.h ui_tripwindow.h
+compiler_uic_make_all: ui_admin.h ui_adminaddsouvenir.h ui_adminchangeprice.h ui_admindeletesouvenir.h ui_basictripwindow.h ui_customtripwindow.h ui_login.h ui_mainwindow.h ui_modcolleges.h ui_modsouvenirs.h ui_summarywindow.h ui_tripwindow.h
 compiler_uic_clean:
-	-$(DEL_FILE) ui_basictripwindow.h ui_customtripwindow.h ui_mainwindow.h ui_newwindow.h ui_summarywindow.h ui_tripwindow.h
+	-$(DEL_FILE) ui_admin.h ui_adminaddsouvenir.h ui_adminchangeprice.h ui_admindeletesouvenir.h ui_basictripwindow.h ui_customtripwindow.h ui_login.h ui_mainwindow.h ui_modcolleges.h ui_modsouvenirs.h ui_summarywindow.h ui_tripwindow.h
+ui_admin.h: ../../admin.ui \
+		/Users/cleru/Qt/6.10.2/macos/libexec/uic
+	/Users/cleru/Qt/6.10.2/macos/libexec/uic ../../admin.ui -o ui_admin.h
+
+ui_adminaddsouvenir.h: ../../adminaddsouvenir.ui \
+		/Users/cleru/Qt/6.10.2/macos/libexec/uic
+	/Users/cleru/Qt/6.10.2/macos/libexec/uic ../../adminaddsouvenir.ui -o ui_adminaddsouvenir.h
+
+ui_adminchangeprice.h: ../../adminchangeprice.ui \
+		/Users/cleru/Qt/6.10.2/macos/libexec/uic
+	/Users/cleru/Qt/6.10.2/macos/libexec/uic ../../adminchangeprice.ui -o ui_adminchangeprice.h
+
+ui_admindeletesouvenir.h: ../../admindeletesouvenir.ui \
+		/Users/cleru/Qt/6.10.2/macos/libexec/uic
+	/Users/cleru/Qt/6.10.2/macos/libexec/uic ../../admindeletesouvenir.ui -o ui_admindeletesouvenir.h
+
 ui_basictripwindow.h: ../../basictripwindow.ui \
 		/Users/cleru/Qt/6.10.2/macos/libexec/uic
 	/Users/cleru/Qt/6.10.2/macos/libexec/uic ../../basictripwindow.ui -o ui_basictripwindow.h
@@ -983,13 +1084,21 @@ ui_customtripwindow.h: ../../customtripwindow.ui \
 		/Users/cleru/Qt/6.10.2/macos/libexec/uic
 	/Users/cleru/Qt/6.10.2/macos/libexec/uic ../../customtripwindow.ui -o ui_customtripwindow.h
 
+ui_login.h: ../../login.ui \
+		/Users/cleru/Qt/6.10.2/macos/libexec/uic
+	/Users/cleru/Qt/6.10.2/macos/libexec/uic ../../login.ui -o ui_login.h
+
 ui_mainwindow.h: ../../mainwindow.ui \
 		/Users/cleru/Qt/6.10.2/macos/libexec/uic
 	/Users/cleru/Qt/6.10.2/macos/libexec/uic ../../mainwindow.ui -o ui_mainwindow.h
 
-ui_newwindow.h: ../../newwindow.ui \
+ui_modcolleges.h: ../../modcolleges.ui \
 		/Users/cleru/Qt/6.10.2/macos/libexec/uic
-	/Users/cleru/Qt/6.10.2/macos/libexec/uic ../../newwindow.ui -o ui_newwindow.h
+	/Users/cleru/Qt/6.10.2/macos/libexec/uic ../../modcolleges.ui -o ui_modcolleges.h
+
+ui_modsouvenirs.h: ../../modsouvenirs.ui \
+		/Users/cleru/Qt/6.10.2/macos/libexec/uic
+	/Users/cleru/Qt/6.10.2/macos/libexec/uic ../../modsouvenirs.ui -o ui_modsouvenirs.h
 
 ui_summarywindow.h: ../../summarywindow.ui \
 		/Users/cleru/Qt/6.10.2/macos/libexec/uic
@@ -1011,6 +1120,92 @@ compiler_clean: compiler_moc_header_clean compiler_uic_clean
 
 ####### Compile
 
+admin.o: ../../admin.cpp ../../admin.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
+		ui_admin.h \
+		../../modcolleges.h \
+		../../modsouvenirs.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
+		../../login.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o admin.o ../../admin.cpp
+
+adminaddsouvenir.o: ../../adminaddsouvenir.cpp ../../adminaddsouvenir.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QWidget \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
+		ui_adminaddsouvenir.h \
+		../../modsouvenirs.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QCoreApplication \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qcoreapplication.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QDir \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qdir.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QFileInfo \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qfileinfo.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMessageBox \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmessagebox.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlError \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlerror.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlQuery \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlquery.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o adminaddsouvenir.o ../../adminaddsouvenir.cpp
+
+adminchangeprice.o: ../../adminchangeprice.cpp ../../adminchangeprice.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QWidget \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
+		ui_adminchangeprice.h \
+		../../modsouvenirs.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QCoreApplication \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qcoreapplication.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QDir \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qdir.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QFileInfo \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qfileinfo.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMessageBox \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmessagebox.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlError \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlerror.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlQuery \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlquery.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o adminchangeprice.o ../../adminchangeprice.cpp
+
+admindeletesouvenir.o: ../../admindeletesouvenir.cpp ../../admindeletesouvenir.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QWidget \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		ui_admindeletesouvenir.h \
+		../../modsouvenirs.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QCoreApplication \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qcoreapplication.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QDir \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qdir.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QFileInfo \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qfileinfo.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMessageBox \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmessagebox.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlError \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlerror.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlQuery \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlquery.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o admindeletesouvenir.o ../../admindeletesouvenir.cpp
+
 basictripwindow.o: ../../basictripwindow.cpp ../../basictripwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMainWindow \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmainwindow.h \
@@ -1022,6 +1217,13 @@ basictripwindow.o: ../../basictripwindow.cpp ../../basictripwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qhash.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QSet \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qset.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
+		../../mainwindow.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/QResizeEvent \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/qevent.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QCoreApplication \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qcoreapplication.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QDir \
@@ -1030,8 +1232,6 @@ basictripwindow.o: ../../basictripwindow.cpp ../../basictripwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qfileinfo.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMessageBox \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmessagebox.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlError \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlerror.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlQuery \
@@ -1049,6 +1249,13 @@ customtripwindow.o: ../../customtripwindow.cpp ../../customtripwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qhash.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QSet \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qset.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
+		../../mainwindow.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/QResizeEvent \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/qevent.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QCoreApplication \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qcoreapplication.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QDir \
@@ -1059,35 +1266,44 @@ customtripwindow.o: ../../customtripwindow.cpp ../../customtripwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmessagebox.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QTableWidgetItem \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qtablewidget.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlError \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlerror.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlQuery \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlquery.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o customtripwindow.o ../../customtripwindow.cpp
 
-main.o: ../../main.cpp ../../mainwindow.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMainWindow \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmainwindow.h \
-		../../newwindow.h \
+login.o: ../../login.cpp ../../login.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
+		../../admin.h \
+		ui_login.h \
+		../../mainwindow.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMainWindow \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmainwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QApplication \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qapplication.h
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/QResizeEvent \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/qevent.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o login.o ../../login.cpp
+
+main.o: ../../main.cpp /Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QApplication \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qapplication.h \
+		../../login.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../../main.cpp
 
 mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMainWindow \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmainwindow.h \
-		ui_mainwindow.h \
-		../../newwindow.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/QResizeEvent \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/qevent.h \
+		ui_mainwindow.h \
+		../../login.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
 		../../basictripwindow.h \
 		../../customtripwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QCoreApplication \
@@ -1104,48 +1320,92 @@ mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qcombobox.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QTableView \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qtableview.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlError \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlerror.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlQuery \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlquery.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlQueryModel \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlquerymodel.h
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QRect \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qrect.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QAbstractItemView \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qabstractitemview.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../../mainwindow.cpp
 
-newwindow.o: ../../newwindow.cpp ../../newwindow.h \
+modcolleges.o: ../../modcolleges.cpp ../../modcolleges.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
-		ui_newwindow.h \
+		ui_modcolleges.h \
+		../../admin.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QCoreApplication \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qcoreapplication.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QDir \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qdir.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QFileInfo \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qfileinfo.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QHeaderView \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qheaderview.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMessageBox \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmessagebox.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QTableWidgetItem \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qtablewidget.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlError \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlerror.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlQuery \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlquery.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlQueryModel \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlquerymodel.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QDebug \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qdebug.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o newwindow.o ../../newwindow.cpp
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlquery.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o modcolleges.o ../../modcolleges.cpp
+
+modsouvenirs.o: ../../modsouvenirs.cpp ../../modsouvenirs.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
+		ui_modsouvenirs.h \
+		../../admin.h \
+		../../adminaddsouvenir.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QWidget \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qwidget.h \
+		../../adminchangeprice.h \
+		../../admindeletesouvenir.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QCoreApplication \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qcoreapplication.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QDir \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qdir.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QFileInfo \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qfileinfo.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QHeaderView \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qheaderview.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMessageBox \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmessagebox.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QSignalBlocker \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qobject.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QTableWidgetItem \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qtablewidget.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlError \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlerror.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlQuery \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlquery.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o modsouvenirs.o ../../modsouvenirs.cpp
 
 summarywindow.o: ../../summarywindow.cpp ../../summarywindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QDialog \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qdialog.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
 		ui_summarywindow.h \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QLabel \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qlabel.h \
+		../../mainwindow.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QMainWindow \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qmainwindow.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/QResizeEvent \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/qevent.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QLineEdit \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qlineedit.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QStringList \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstringlist.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QStringListModel \
-		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstringlistmodel.h
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstringlistmodel.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QMap \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qmap.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o summarywindow.o ../../summarywindow.cpp
 
 tripwindow.o: ../../tripwindow.cpp ../../tripwindow.h \
@@ -1155,6 +1415,8 @@ tripwindow.o: ../../tripwindow.cpp ../../tripwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qhash.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QSet \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qset.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QString \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/qstring.h \
 		ui_tripwindow.h \
 		../../summarywindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtCore.framework/Headers/QCoreApplication \
@@ -1173,6 +1435,15 @@ tripwindow.o: ../../tripwindow.cpp ../../tripwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qpushbutton.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QLabel \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qlabel.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QTableWidget \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qtablewidget.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QTableWidgetItem \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QHeaderView \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qheaderview.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/QAbstractItemView \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtWidgets.framework/Headers/qabstractitemview.h \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/QIntValidator \
+		/Users/cleru/Qt/6.10.2/macos/lib/QtGui.framework/Headers/qvalidator.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlDatabase \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqldatabase.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/QSqlError \
@@ -1181,17 +1452,35 @@ tripwindow.o: ../../tripwindow.cpp ../../tripwindow.h \
 		/Users/cleru/Qt/6.10.2/macos/lib/QtSql.framework/Headers/qsqlquery.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tripwindow.o ../../tripwindow.cpp
 
+moc_admin.o: moc_admin.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_admin.o moc_admin.cpp
+
+moc_adminaddsouvenir.o: moc_adminaddsouvenir.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_adminaddsouvenir.o moc_adminaddsouvenir.cpp
+
+moc_adminchangeprice.o: moc_adminchangeprice.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_adminchangeprice.o moc_adminchangeprice.cpp
+
+moc_admindeletesouvenir.o: moc_admindeletesouvenir.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_admindeletesouvenir.o moc_admindeletesouvenir.cpp
+
 moc_basictripwindow.o: moc_basictripwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_basictripwindow.o moc_basictripwindow.cpp
 
 moc_customtripwindow.o: moc_customtripwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_customtripwindow.o moc_customtripwindow.cpp
 
+moc_login.o: moc_login.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_login.o moc_login.cpp
+
 moc_mainwindow.o: moc_mainwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp
 
-moc_newwindow.o: moc_newwindow.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_newwindow.o moc_newwindow.cpp
+moc_modcolleges.o: moc_modcolleges.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_modcolleges.o moc_modcolleges.cpp
+
+moc_modsouvenirs.o: moc_modsouvenirs.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_modsouvenirs.o moc_modsouvenirs.cpp
 
 moc_summarywindow.o: moc_summarywindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_summarywindow.o moc_summarywindow.cpp

@@ -2,14 +2,10 @@
  * @file basictripwindow.h
  * @brief Defines the BasicTripWindow class.
  *
- * This window allows the user to configure a basic campus trip by
- * selecting a starting campus and the number of campuses to visit.
+ * This window allows the user to create a basic campus tour.
+ * The user selects the number of campuses to visit and the
+ * application calculates a route starting from Saddleback College.
  */
-
-// basictripwindow.h defines the BasicTripWindow class.
-// This window allows the user to configure a basic campus trip by
-// selecting a starting campus and the number of campuses to visit.
-// After setup, it launches the TripWindow to simulate the trip.
 
 #ifndef BASICTRIPWINDOW_H
 #define BASICTRIPWINDOW_H
@@ -17,65 +13,77 @@
 #include <QMainWindow>
 #include <vector>
 
+// Forward declaration for the UI class generated from basictripwindow.ui
 QT_BEGIN_NAMESPACE
 namespace Ui { class BasicTripWindow; }
 QT_END_NAMESPACE
 
 /*
  * Class: BasicTripWindow
- * Purpose: Provides a UI for creating a basic campus trip.
- *          The user selects a starting campus and how many
- *          campuses to visit before launching the trip window.
+ * Purpose: Provides the interface for starting a predefined
+ *          campus tour beginning at Saddleback College.
+ *
+ * The window loads available campuses from the database and
+ * allows the user to choose how many campuses to visit.
  */
 class BasicTripWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
+
     /*
-     * Constructor
-     * Purpose: Initializes the Basic Trip setup window.
+     * Function: BasicTripWindow constructor
+     * Purpose : Initializes the window and loads campus
+     *           information from the database.
      */
     explicit BasicTripWindow(QWidget *parent = nullptr);
 
     /*
-     * Destructor
-     * Purpose: Cleans up UI resources when the window closes.
+     * Function: ~BasicTripWindow
+     * Purpose : Cleans up UI resources when the window closes.
      */
     ~BasicTripWindow();
 
 private slots:
 
     /*
-     * Slot: on_startTripButtonBT_clicked
-     * Purpose: Triggered when the user clicks the Start Trip button.
-     *          Collects selected options and launches the trip window.
+     * Function: on_startTripButtonBT_clicked
+     * Purpose : Starts the basic campus tour using the
+     *           selected number of campuses.
      */
     void on_startTripButtonBT_clicked();
 
+    /*
+     * Function: on_backButtonBT_clicked
+     * Purpose : Returns the user to the previous window
+     *           without starting the trip.
+     */
+    void on_backButtonBT_clicked();
+
 private:
 
-    // Pointer to the UI generated from basictripwindow.ui
+    // Pointer to UI elements generated from basictripwindow.ui
     Ui::BasicTripWindow *ui;
 
     /*
      * Function: ensureDbOpen
-     * Purpose : Ensures the SQLite database connection exists
-     *           and is open before querying campus data.
+     * Purpose : Ensures the SQLite database connection
+     *           is open before performing queries.
      */
     bool ensureDbOpen();
 
     /*
      * Function: loadCampusesFromDb
-     * Purpose : Queries the database and loads campus names
-     *           into the starting campus dropdown menu.
+     * Purpose : Retrieves the list of available campuses
+     *           from the database.
      */
     void loadCampusesFromDb();
 
     /*
      * Function: rebuildNumDropdown
-     * Purpose : Rebuilds the "number of campuses to visit" dropdown
-     *           based on how many campuses exist in the database.
+     * Purpose : Updates the dropdown menu that allows the
+     *           user to choose how many campuses to visit.
      */
     void rebuildNumDropdown(int campusCount);
 };

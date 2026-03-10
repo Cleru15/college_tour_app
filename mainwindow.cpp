@@ -2,21 +2,15 @@
  * @file mainwindow.cpp
  * @brief Implements the MainWindow class.
  *
- * Handles the main UI logic including loading campus distances,
- * opening souvenir previews, and launching trip planning windows.
+ * This window serves as the main hub of the application.
+ * It allows users to preview souvenirs, view campus distances,
+ * start trips, or return to the login screen.
  */
-
-// mainwindow.cpp controls the main interface of the Campus Tour application.
-// This window acts as the central hub where users can preview souvenirs,
-// view campus distances, or start either a Basic Trip or Custom Trip.
-//
-// It also manages the model/view system used to display campus distance
-// data from the SQLite database.
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "login.h"
 
-#include "newwindow.h"
 #include "basictripwindow.h"
 #include "customtripwindow.h"
 
@@ -27,16 +21,18 @@
 #include <QHeaderView>
 #include <QComboBox>
 #include <QTableView>
+#include <QRect>
+#include <QAbstractItemView>
 
-#include <QSqlDatabase>
-#include <QSqlError>
-#include <QSqlQuery>
-#include <QSqlQueryModel>
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlError>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlQueryModel>
 
 /*
  * Function: MainWindow constructor
- * Purpose : Initializes the main application window.
- *           Builds the UI and sets up the campus distance table.
+ * Purpose : Initializes the main window, opens the database,
+ *           and prepares the campus/souvenir display UI.
  */
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -44,43 +40,93 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    setWindowTitle("Campus Tour");
-
+    ensureDbOpen();
     setupDistanceUi();
+    populateSouvenirCampusCombo();
+    populateStartingCampusCombo();
+
+    m_distanceModel->setQuery("SELECT '' AS col1, '' AS col2 WHERE 1=0", m_db);
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "");
+
+    resizeDistanceTableColumns();
 }
 
 /*
  * Function: ~MainWindow
- * Purpose : Cleans up dynamically allocated UI resources
- *           when the main window is destroyed.
+ * Purpose : Closes the database connection and cleans up
+ *           UI resources when the main window closes.
  */
 MainWindow::~MainWindow()
 {
+    const QString connName = m_db.connectionName();
+
+    if (m_db.isValid() && m_db.isOpen())
+        m_db.close();
+
+    m_db = QSqlDatabase();
+    QSqlDatabase::removeDatabase(connName);
+
     delete ui;
 }
 
 /*
+ * Function: resizeDistanceTableColumns
+ * Purpose : Adjusts the distance table column widths when
+ *           the window size changes.
+ */
+void MainWindow::resizeDistanceTableColumns()
+{
+    if (!m_distanceTable || !m_distanceTable->model())
+        return;
+
+    const int totalWidth = m_distanceTable->viewport()->width();
+    if (totalWidth <= 0)
+        return;
+
+    const int firstColWidth  = static_cast<int>(totalWidth * 0.75);
+    const int secondColWidth = totalWidth - firstColWidth;
+
+    m_distanceTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    m_distanceTable->setColumnWidth(0, firstColWidth);
+    m_distanceTable->setColumnWidth(1, secondColWidth);
+}
+
+/*
+ * Function: resizeEvent
+ * Purpose : Handles window resize events and updates
+ *           the distance table layout.
+ */
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    QMainWindow::resizeEvent(event);
+    resizeDistanceTableColumns();
+}
+
+/*
  * Function: ensureDbOpen
- * Purpose : Ensures the SQLite database connection exists and is open.
- *           Searches common locations for college_tour.sqlite if needed.
- *
- * Returns : true if the database connection is available
- *           false if the database cannot be found or opened
+ * Purpose : Opens the SQLite database connection used by
+ *           the main window if it is not already open.
  */
 bool MainWindow::ensureDbOpen()
 {
-    QSqlDatabase db;
+    const QString connName = QString("main_conn_%1")
+    .arg(reinterpret_cast<quintptr>(this));
 
-    if (QSqlDatabase::contains())
-    {
-        db = QSqlDatabase::database();
-        if (db.isOpen())
-            return true;
-    }
+    if (QSqlDatabase::contains(connName))
+        m_db = QSqlDatabase::database(connName);
     else
+        m_db = QSqlDatabase::addDatabase("QSQLITE", connName);
+
+    if (!m_db.isValid())
     {
-        db = QSqlDatabase::addDatabase("QSQLITE");
+        QMessageBox::critical(this, "Database Error",
+                              "QSQLITE driver is not available.");
+        return false;
     }
+
+    if (m_db.isOpen())
+        return true;
 
     const QString exeDir = QCoreApplication::applicationDirPath();
     QStringList candidates;
@@ -100,7 +146,7 @@ bool MainWindow::ensureDbOpen()
     {
         if (QFileInfo::exists(p))
         {
-            dbPath = p;
+            dbPath = QFileInfo(p).absoluteFilePath();
             break;
         }
     }
@@ -108,18 +154,18 @@ bool MainWindow::ensureDbOpen()
     if (dbPath.isEmpty())
     {
         QMessageBox::critical(this, "Database Error",
-                              "Could not find college_tour.sqlite.\n\n"
-                              "Put it next to your .exe (build/debug folder),\n"
-                              "or in the project folder.");
+                              "Could not find college_tour.sqlite.");
         return false;
     }
 
-    db.setDatabaseName(dbPath);
+    m_db.setDatabaseName(dbPath);
 
-    if (!db.open())
+    if (!m_db.open())
     {
         QMessageBox::critical(this, "Database Error",
-                              "Failed to open SQLite database:\n" + db.lastError().text());
+                              "Could not open SQLite database:\n" +
+                                  m_db.lastError().text() +
+                                  "\n\nPath tried:\n" + dbPath);
         return false;
     }
 
@@ -128,70 +174,81 @@ bool MainWindow::ensureDbOpen()
 
 /*
  * Function: setupDistanceUi
- * Purpose : Builds the campus distance display using Qt's model/view system.
- *           Creates a table view connected to a SQL query model.
+ * Purpose : Creates and configures the distance display table
+ *           used to show campus-to-campus distances.
  */
 void MainWindow::setupDistanceUi()
 {
     if (!ensureDbOpen())
         return;
 
-    m_fromCampusCombo = ui->dropdownSouvenirPreview_2;
+    m_fromCampusCombo = ui->dropdownDistances;
 
+    QRect tableRect(260, 30, 541, 410);
     if (ui->distanceListView)
+    {
+        tableRect = ui->distanceListView->geometry();
         ui->distanceListView->hide();
-
-    const QRect tableRect = ui->distanceListView
-                                ? ui->distanceListView->geometry()
-                                : QRect(260, 30, 541, 410);
+    }
 
     m_distanceTable = new QTableView(ui->centralwidget);
     m_distanceTable->setGeometry(tableRect);
     m_distanceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_distanceTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_distanceTable->horizontalHeader()->setStretchLastSection(true);
+    m_distanceTable->horizontalHeader()->setStretchLastSection(false);
 
     m_distanceModel = new QSqlQueryModel(m_distanceTable);
+    m_distanceTable->setModel(m_distanceModel);
 
     populateStartingCampusCombo();
 
-    if (m_fromCampusCombo && m_fromCampusCombo->count() > 0)
+    if (m_fromCampusCombo && m_fromCampusCombo->count() > 1)
     {
         QString start = m_fromCampusCombo->currentData().toString();
         if (start.isEmpty())
             start = m_fromCampusCombo->currentText();
-        loadDistancesForCampus(start);
+
+        if (!start.isEmpty() &&
+            start.compare("Select a College", Qt::CaseInsensitive) != 0)
+        {
+            loadDistancesForCampus(start);
+        }
     }
 }
 
 /*
  * Function: populateStartingCampusCombo
- * Purpose : Loads campus names from the database into the dropdown menu.
- *           Ensures all campuses are included by combining both distance columns.
+ * Purpose : Loads enabled campuses into the distance
+ *           selection dropdown.
  */
 void MainWindow::populateStartingCampusCombo()
 {
     if (!m_fromCampusCombo)
         return;
 
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
     m_fromCampusCombo->clear();
+    m_fromCampusCombo->addItem("Select a College");
 
-    QSqlQuery q(QSqlDatabase::database());
-    q.prepare(R"(
-        SELECT DISTINCT TRIM(name) AS campus
-        FROM (
-            SELECT from_campus AS name FROM distances
-            UNION
-            SELECT to_campus AS name FROM distances
-        )
-        WHERE TRIM(name) <> ''
-        ORDER BY TRIM(name) ASC
-    )");
+    QSqlQuery q(m_db);
 
-    if (!q.exec())
+    const QString sql = R"(
+        SELECT TRIM(campus)
+        FROM campus_access
+        WHERE enabled = 1
+          AND TRIM(campus) <> ''
+        ORDER BY TRIM(campus) ASC
+    )";
+
+    if (!q.exec(sql))
     {
         QMessageBox::critical(this, "Query Error",
-                              "Campus list query failed:\n" + q.lastError().text());
+                              "Campus list query failed:\n" +
+                                  q.lastError().text() +
+                                  "\n\nDB: " + m_db.databaseName() +
+                                  "\nSQL:\n" + sql);
         return;
     }
 
@@ -209,30 +266,34 @@ void MainWindow::populateStartingCampusCombo()
 
 /*
  * Function: loadDistancesForCampus
- * Purpose : Queries the database for all campuses reachable from
- *           the selected starting campus and displays them in the table.
+ * Purpose : Loads and displays the distances from the
+ *           selected campus to other enabled campuses.
  */
 void MainWindow::loadDistancesForCampus(const QString &fromCampus)
 {
     if (!m_distanceTable || !m_distanceModel)
         return;
-    if (!ensureDbOpen())
+    if (!m_db.isOpen() && !ensureDbOpen())
         return;
 
     const QString from = fromCampus.trimmed();
-    if (from.isEmpty())
+    if (from.isEmpty() ||
+        from.compare("Select a College", Qt::CaseInsensitive) == 0)
         return;
 
-    QSqlQuery query(QSqlDatabase::database());
+    QSqlQuery query(m_db);
     query.prepare(R"(
         SELECT
-            TRIM(to_campus) AS campus,
-            MIN(miles)      AS miles
-        FROM distances
-        WHERE TRIM(from_campus) = :from
-          AND TRIM(to_campus) <> :from
-          AND TRIM(to_campus) <> ''
-        GROUP BY TRIM(to_campus)
+            TRIM(d.to_campus) AS campus,
+            MIN(d.miles)      AS miles
+        FROM distances d
+        JOIN campus_access ca
+          ON TRIM(ca.campus) = TRIM(d.to_campus)
+        WHERE TRIM(d.from_campus) = :from
+          AND TRIM(d.to_campus) <> :from
+          AND TRIM(d.to_campus) <> ''
+          AND ca.enabled = 1
+        GROUP BY TRIM(d.to_campus)
         ORDER BY miles ASC, campus ASC
     )");
     query.bindValue(":from", from);
@@ -244,7 +305,8 @@ void MainWindow::loadDistancesForCampus(const QString &fromCampus)
         return;
     }
 
-    m_distanceModel->setQuery(std::move(query));
+    m_distanceModel->setQuery(query);
+
     if (m_distanceModel->lastError().isValid())
     {
         QMessageBox::critical(this, "Model Error",
@@ -253,32 +315,90 @@ void MainWindow::loadDistancesForCampus(const QString &fromCampus)
     }
 
     m_distanceModel->setHeaderData(0, Qt::Horizontal, "Campus");
-    m_distanceModel->setHeaderData(1, Qt::Horizontal, QString("Miles from %1").arg(from));
-    m_distanceTable->setModel(m_distanceModel);
-    m_distanceTable->resizeColumnsToContents();
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Distance");
+
+    resizeDistanceTableColumns();
+}
+
+/*
+ * Function: loadSouvenirsForCampus
+ * Purpose : Loads and displays the souvenirs available
+ *           for the selected campus.
+ */
+void MainWindow::loadSouvenirsForCampus(const QString &campus)
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    const QString selectedCampus = campus.trimmed();
+    if (selectedCampus.isEmpty() ||
+        selectedCampus.compare("Select a College", Qt::CaseInsensitive) == 0)
+        return;
+
+    QSqlQuery query(m_db);
+    query.prepare(R"(
+        SELECT
+            TRIM(s.item) AS souvenir,
+            s.price      AS price
+        FROM souvenirs s
+        LEFT JOIN souvenir_access sa
+          ON TRIM(sa.campus) = TRIM(s.campus)
+         AND TRIM(sa.item)   = TRIM(s.item)
+        WHERE TRIM(s.campus) = :campus
+          AND (sa.enabled = 1 OR sa.enabled IS NULL)
+          AND TRIM(s.item) <> ''
+        ORDER BY TRIM(s.item) ASC
+    )");
+    query.bindValue(":campus", selectedCampus);
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Souvenir query failed:\n" + query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              "Souvenir model error:\n" + m_distanceModel->lastError().text());
+        return;
+    }
+
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Souvenir");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Price");
+
+    resizeDistanceTableColumns();
 }
 
 /*
  * Function: previewSouvenirButtonClick
- * Purpose : Opens the souvenir preview dialog for the selected campus.
+ * Purpose : Displays the souvenirs for the selected campus
+ *           in the table view.
  */
 void MainWindow::previewSouvenirButtonClick()
 {
-    const QString campus = ui->dropdownSouvenirPreview
-                               ? ui->dropdownSouvenirPreview->currentText().trimmed()
-                               : QString();
+    const QString campus = ui->dropdownSouvenirPreview->currentText().trimmed();
 
-    if (campus.isEmpty() || campus.startsWith("Display Souvenirs", Qt::CaseInsensitive))
+    if (campus.isEmpty() ||
+        campus.compare("Select a College", Qt::CaseInsensitive) == 0)
+    {
+        m_distanceModel->setQuery("SELECT '' AS col1, '' AS col2 WHERE 1=0", m_db);
+        m_distanceModel->setHeaderData(0, Qt::Horizontal, "");
+        m_distanceModel->setHeaderData(1, Qt::Horizontal, "");
         return;
+    }
 
-    NewWindow dlg(campus, this);
-    dlg.setModal(true);
-    dlg.exec();
+    loadSouvenirsForCampus(campus);
 }
 
 /*
  * Function: cancelButtonClick
- * Purpose : Exits the application when the cancel button is pressed.
+ * Purpose : Closes the application.
  */
 void MainWindow::cancelButtonClick()
 {
@@ -286,44 +406,102 @@ void MainWindow::cancelButtonClick()
 }
 
 /*
- * Function: on_submitButtonSouvenirPreview_2_clicked
- * Purpose : Loads and displays campus distances for the selected starting campus.
+ * Function: on_buttonDistancesSubmit_clicked
+ * Purpose : Displays distances for the campus selected
+ *           in the distances dropdown.
  */
-void MainWindow::on_submitButtonSouvenirPreview_2_clicked()
+void MainWindow::on_buttonDistancesSubmit_clicked()
 {
-    if (!m_fromCampusCombo)
+    const QString campus = ui->dropdownDistances->currentText().trimmed();
+
+    if (campus.isEmpty() ||
+        campus.compare("Select a College", Qt::CaseInsensitive) == 0)
+    {
+        m_distanceModel->setQuery("SELECT '' AS col1, '' AS col2 WHERE 1=0", m_db);
+        m_distanceModel->setHeaderData(0, Qt::Horizontal, "");
+        m_distanceModel->setHeaderData(1, Qt::Horizontal, "");
         return;
+    }
 
-    QString from = m_fromCampusCombo->currentData().toString();
-    if (from.isEmpty())
-        from = m_fromCampusCombo->currentText();
-
-    if (from.startsWith("Distance", Qt::CaseInsensitive))
-        return;
-
-    loadDistancesForCampus(from);
+    loadDistancesForCampus(campus);
 }
 
 /*
- * Function: on_submitButtonSouvenirPreview_3_clicked
- * Purpose : Opens the Basic Trip planning window.
+ * Function: on_buttonBasicTrip_clicked
+ * Purpose : Opens the basic trip planning window.
  */
-void MainWindow::on_submitButtonSouvenirPreview_3_clicked()
+void MainWindow::on_buttonBasicTrip_clicked()
 {
-    auto *win = new BasicTripWindow(this);
+    auto *win = new BasicTripWindow(nullptr);
+    win->setAttribute(Qt::WA_DeleteOnClose);
+    win->show();
+    this->close();
+}
+
+/*
+ * Function: on_buttonCustomTrip_clicked
+ * Purpose : Opens the custom trip planning window.
+ */
+void MainWindow::on_buttonCustomTrip_clicked()
+{
+    auto *win = new CustomTripWindow(nullptr);
+    win->setAttribute(Qt::WA_DeleteOnClose);
+    win->show();
+    this->close();
+}
+
+/*
+ * Function: on_pushButton_clicked
+ * Purpose : Returns the user to the login window.
+ */
+void MainWindow::on_pushButton_clicked()
+{
+    auto *win = new Login(this);
     win->setAttribute(Qt::WA_DeleteOnClose);
     win->show();
     this->hide();
 }
 
 /*
- * Function: on_submitButtonSouvenirPreview_4_clicked
- * Purpose : Opens the Custom Trip planning window.
+ * Function: populateSouvenirCampusCombo
+ * Purpose : Loads enabled campuses into the souvenir
+ *           preview dropdown menu.
  */
-void MainWindow::on_submitButtonSouvenirPreview_4_clicked()
+void MainWindow::populateSouvenirCampusCombo()
 {
-    auto *win = new CustomTripWindow(this);
-    win->setAttribute(Qt::WA_DeleteOnClose);
-    win->show();
-    this->hide();
+    if (!ui->dropdownSouvenirPreview)
+        return;
+
+    ui->dropdownSouvenirPreview->clear();
+    ui->dropdownSouvenirPreview->addItem("Select a College");
+
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery q(m_db);
+
+    const QString sql = R"(
+        SELECT TRIM(campus)
+        FROM campus_access
+        WHERE enabled = 1
+          AND TRIM(campus) <> ''
+        ORDER BY TRIM(campus) ASC
+    )";
+
+    if (!q.exec(sql))
+    {
+        QMessageBox::warning(this, "Query Error",
+                             "Could not load enabled colleges:\n" +
+                                 q.lastError().text() +
+                                 "\n\nDB: " + m_db.databaseName() +
+                                 "\nSQL:\n" + sql);
+        return;
+    }
+
+    while (q.next())
+    {
+        const QString campus = q.value(0).toString().trimmed();
+        if (!campus.isEmpty())
+            ui->dropdownSouvenirPreview->addItem(campus);
+    }
 }

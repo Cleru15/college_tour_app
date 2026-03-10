@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>976</width>
-    <height>689</height>
+    <width>343</width>
+    <height>536</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,72 +18,17 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>40</y>
+      <y>80</y>
       <width>191</width>
       <height>25</height>
      </rect>
     </property>
-    <item>
-     <property name="text">
-      <string>Select Starting College...</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>Arizona State University</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>Northwestern</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>Ohio State University</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>Saddleback College</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>University of Michigan</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>University of California, Irvine (UCI)</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>University of California, Los Angeles (UCLA)</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>University of Oregon</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>University of the Pacific</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>University of Wisconsin</string>
-     </property>
-    </item>
    </widget>
    <widget class="QPushButton" name="confirmButtonCT">
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>40</y>
+      <y>80</y>
       <width>81</width>
       <height>25</height>
      </rect>
@@ -92,11 +37,11 @@
      <string>Confirm</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_2">
+   <widget class="QLabel" name="subtitle2CT">
     <property name="geometry">
      <rect>
-      <x>60</x>
-      <y>90</y>
+      <x>70</x>
+      <y>140</y>
       <width>171</width>
       <height>20</height>
      </rect>
@@ -112,7 +57,7 @@
     <property name="geometry">
      <rect>
       <x>120</x>
-      <y>380</y>
+      <y>420</y>
       <width>80</width>
       <height>25</height>
      </rect>
@@ -125,10 +70,62 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>130</y>
+      <y>170</y>
       <width>311</width>
       <height>241</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="backButtCT">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>460</y>
+      <width>80</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Back</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="subtitle1CT">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>50</y>
+      <width>171</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Select a Starting College</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="titleCT">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>10</y>
+      <width>211</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+      <italic>true</italic>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Plan a Custom Tour</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
     </property>
    </widget>
   </widget>
@@ -137,8 +134,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>976</width>
-     <height>25</height>
+     <width>343</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>
