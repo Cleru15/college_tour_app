@@ -11,11 +11,11 @@
 # These modules enable different Qt libraries used in the project.
 # core    -> base Qt functionality
 # gui     -> graphical user interface utilities
-# quick   -> Qt Quick / QML components
+# widgets -> widget-based UI components
 # sql     -> database functionality (SQLite queries)
 # ================================================================
 
-QT += core gui quick sql
+QT += core gui sql
 
 # If Qt version is greater than Qt4, include the widgets module.
 # Widgets provides classes such as QMainWindow, QPushButton, etc.
