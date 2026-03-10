@@ -102,7 +102,6 @@ OBJECTS       = admin.o \
 		moc_summarywindow.o \
 		moc_tripwindow.o
 DIST          = ../../college_tour.sqlite \
-		../../college_tour.sqlite \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/spec_pre.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/features/device_config.prf \
 		/Users/cleru/Qt/6.10.2/macos/mkspecs/common/unix.conf \
