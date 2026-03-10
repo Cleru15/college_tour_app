@@ -29,6 +29,7 @@
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
+#include <QDebug>
 
 static constexpr double BIG = 1e18;
 
