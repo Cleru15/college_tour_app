@@ -1,7 +1,21 @@
 #ifndef CUSTOMTRIPWINDOW_H
 #define CUSTOMTRIPWINDOW_H
 
-#include <QMainWindow>
+#include "tripwindow.h"
+#include "mainwindow.h"
+
+//#include <QCoreApplication>
+//#include <QDir>
+//#include <QFileInfo>
+//#include <QMessageBox>
+//#include <QTableWidgetItem>
+
+//#include <QSqlDatabase>
+//#include <QSqlError>
+//#include <QSqlQuery>
+//#include <QString>
+
+//#include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class CustomTripWindow; }
@@ -18,15 +32,16 @@ public:
 private slots:
     void on_confirmButtonCT_clicked();
     void on_startTripButtonCT_clicked();
+    void on_backButtCT_clicked();   // add this
 
 private:
     Ui::CustomTripWindow *ui;
 
     bool ensureDbOpen();
-    QStringList loadCampuses();
+    QStringList loadStadiums();
 
     QString m_startLocked;
-    QStringList m_allCampuses;
+    QStringList m_allStadiums;
 };
 
 #endif // CUSTOMTRIPWINDOW_H

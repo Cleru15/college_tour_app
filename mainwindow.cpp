@@ -1,22 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "newwindow.h"
-#include "basictripwindow.h"
-#include "customtripwindow.h"
-
-#include <QCoreApplication>
-#include <QDir>
-#include <QFileInfo>
-#include <QMessageBox>
-#include <QHeaderView>
-#include <QComboBox>
-#include <QTableView>
-
-#include <QSqlDatabase>
-#include <QSqlError>
-#include <QSqlQuery>
-#include <QSqlQueryModel>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -24,55 +8,99 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    setWindowTitle("Campus Tour");
-
-    // Build the distances table on top of the existing list view area.
+    ensureDbOpen();
     setupDistanceUi();
+    populateSouvenirTeamCombo();
+    populateStartingStadiumCombo();
+
+    m_distanceModel->setQuery("SELECT '' AS col1, '' AS col2 WHERE 1=0", m_db);
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "");
+
+    resizeDistanceTableColumns();
 }
 
 MainWindow::~MainWindow()
 {
+    const QString connName = m_db.connectionName();
+
+    if (m_db.isValid() && m_db.isOpen())
+        m_db.close();
+
+    m_db = QSqlDatabase();
+    QSqlDatabase::removeDatabase(connName);
+
     delete ui;
 }
 
+void MainWindow::resizeDistanceTableColumns()
+{
+    if (!m_distanceTable || !m_distanceTable->model())
+        return;
+
+    const int totalWidth = m_distanceTable->viewport()->width();
+    if (totalWidth <= 0)
+        return;
+
+    // const int firstColWidth  = static_cast<int>(totalWidth * 0.75);
+    // const int secondColWidth = totalWidth - firstColWidth;
+
+    // m_distanceTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    // m_distanceTable->setColumnWidth(0, firstColWidth);
+    // m_distanceTable->setColumnWidth(1, secondColWidth);
+    m_distanceTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    QMainWindow::resizeEvent(event);
+    resizeDistanceTableColumns();
+}
+
+// ------------------------------------------------------------
+// Opening Database
+// ------------------------------------------------------------
+
 bool MainWindow::ensureDbOpen()
 {
-    QSqlDatabase db;
+    const QString connName = QString("main_conn_%1")
+    .arg(reinterpret_cast<quintptr>(this));
 
-    if (QSqlDatabase::contains())
-    {
-        db = QSqlDatabase::database();
-        if (db.isOpen())
-            return true;
-    }
+    if (QSqlDatabase::contains(connName))
+        m_db = QSqlDatabase::database(connName);
     else
+        m_db = QSqlDatabase::addDatabase("QSQLITE", connName);
+
+    if (!m_db.isValid())
     {
-        db = QSqlDatabase::addDatabase("QSQLITE");
+        QMessageBox::critical(this, "Database Error",
+                              "QSQLITE driver is not available.");
+        return false;
     }
 
-    // Try common locations (exe dir, parent dir, current dir)
+    if (m_db.isOpen())
+        return true;
+
     const QString exeDir = QCoreApplication::applicationDirPath();
     QStringList candidates;
 
-    // Look in exe dir and walk upward a few levels (helps when you keep the DB in the project root)
     QDir d(exeDir);
     for (int i = 0; i < 6; ++i)
     {
-        candidates << d.filePath("college_tour.sqlite");
+        candidates << d.filePath("BaseballDatabase.sqlite");
         if (!d.cdUp())
             break;
     }
 
-    // Also try current working directory (Qt Creator often sets this to the build folder)
-    candidates << QDir::current().filePath("college_tour.sqlite");
+    candidates << QDir::current().filePath("BaseballDatabase.sqlite");
 
-QString dbPath;
+    QString dbPath;
     for (const QString &p : candidates)
     {
         if (QFileInfo::exists(p))
         {
-            dbPath = QDir(p).absolutePath() == p ? p : p;
-            dbPath = p;
+            dbPath = QFileInfo(p).absoluteFilePath();
             break;
         }
     }
@@ -80,83 +108,101 @@ QString dbPath;
     if (dbPath.isEmpty())
     {
         QMessageBox::critical(this, "Database Error",
-                              "Could not find college_tour.sqlite.\n\n"
-                              "Put it next to your .exe (build/debug folder),\n"
-                              "or in the project folder.");
+                              "Could not find BaseballDatabase.sqlite.");
         return false;
     }
 
-    db.setDatabaseName(dbPath);
+    m_db.setDatabaseName(dbPath);
 
-    if (!db.open())
+    if (!m_db.open())
     {
         QMessageBox::critical(this, "Database Error",
-                              "Failed to open SQLite database:\n" + db.lastError().text());
+                              "Could not open SQLite database:\n" +
+                                  m_db.lastError().text() +
+                                  "\n\nPath tried:\n" + dbPath);
         return false;
     }
 
     return true;
 }
 
+// ------------------------------------------------------------
+// Distance UI
+// ------------------------------------------------------------
+
 void MainWindow::setupDistanceUi()
 {
     if (!ensureDbOpen())
         return;
 
-    // Reuse existing dropdown + button from the .ui
-    m_fromCampusCombo = ui->dropdownSouvenirPreview_2;
+    m_fromStadiumCombo = ui->dropdownDistances;
 
-    // Replace the center listView with a real table (like your souvenir window)
+    QRect tableRect(260, 30, 541, 410);
     if (ui->distanceListView)
+    {
+        tableRect = ui->distanceListView->geometry();
         ui->distanceListView->hide();
-
-    const QRect tableRect = ui->distanceListView
-                                ? ui->distanceListView->geometry()
-                                : QRect(260, 30, 541, 410);
+    }
 
     m_distanceTable = new QTableView(ui->centralwidget);
     m_distanceTable->setGeometry(tableRect);
     m_distanceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_distanceTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_distanceTable->horizontalHeader()->setStretchLastSection(true);
+    m_distanceTable->horizontalHeader()->setStretchLastSection(false);
 
     m_distanceModel = new QSqlQueryModel(m_distanceTable);
+    m_distanceTable->setModel(m_distanceModel);
 
-    populateStartingCampusCombo();
+    populateStartingStadiumCombo();
 
-    // Load default distances
-    if (m_fromCampusCombo && m_fromCampusCombo->count() > 0)
+    if (m_fromStadiumCombo && m_fromStadiumCombo->count() > 1)
     {
-        QString start = m_fromCampusCombo->currentData().toString();
+        QString start = m_fromStadiumCombo->currentData().toString();
         if (start.isEmpty())
-            start = m_fromCampusCombo->currentText();
-        loadDistancesForCampus(start);
+            start = m_fromStadiumCombo->currentText();
+
+        if (!start.isEmpty() &&
+            start.compare("Select an MLB Stadium", Qt::CaseInsensitive) != 0)
+        {
+            loadDistancesForTeam(start);
+        }
     }
 }
 
-void MainWindow::populateStartingCampusCombo()
+// ------------------------------------------------------------
+// Select Starting team box
+// ------------------------------------------------------------
+
+void MainWindow::populateStartingStadiumCombo()
 {
-    if (!m_fromCampusCombo)
+    if (!m_fromStadiumCombo)
         return;
 
-    m_fromCampusCombo->clear();
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
 
-    QSqlQuery q(QSqlDatabase::database());
-    q.prepare(R"(
-        SELECT DISTINCT TRIM(name) AS campus
-        FROM (
-            SELECT from_campus AS name FROM distances
-            UNION
-            SELECT to_campus AS name FROM distances
-        )
-        WHERE TRIM(name) <> ''
-        ORDER BY TRIM(name) ASC
-    )");
+    m_fromStadiumCombo->clear();
+    m_fromStadiumCombo->addItem("Select an MLB Stadium");
 
-    if (!q.exec())
+    QSqlQuery q(m_db);
+
+    const QString sql = R"(
+        SELECT DISTINCT TRIM(d."Beginning Stadium")
+        FROM MLBDistances d
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(d."Beginning Stadium")
+        WHERE sa.enabled = 1
+            AND TRIM(d."Beginning Stadium") <> ''
+        ORDER BY TRIM(d."Beginning Stadium") ASC
+)";
+
+    if (!q.exec(sql))
     {
         QMessageBox::critical(this, "Query Error",
-                              "Campus list query failed:\n" + q.lastError().text());
+                              "Team list query failed:\n" +
+                                  q.lastError().text() +
+                                  "\n\nDB: " + m_db.databaseName() +
+                                  "\nSQL:\n" + sql);
         return;
     }
 
@@ -164,39 +210,45 @@ void MainWindow::populateStartingCampusCombo()
     {
         const QString c = q.value(0).toString().trimmed();
         if (!c.isEmpty())
-            m_fromCampusCombo->addItem(c, c);
+            m_fromStadiumCombo->addItem(c, c);
     }
 
-    // Default to Saddleback if present
-    const int idx = m_fromCampusCombo->findData("Saddleback College");
+    const int idx = m_fromStadiumCombo->findData("Select an MLB Stadium");
     if (idx >= 0)
-        m_fromCampusCombo->setCurrentIndex(idx);
+        m_fromStadiumCombo->setCurrentIndex(idx);
 }
 
-void MainWindow::loadDistancesForCampus(const QString &fromCampus)
+// ------------------------------------------------------------
+// Distance summary list
+// ------------------------------------------------------------
+
+void MainWindow::loadDistancesForTeam(const QString &fromStadium)
 {
     if (!m_distanceTable || !m_distanceModel)
         return;
-    if (!ensureDbOpen())
+    if (!m_db.isOpen() && !ensureDbOpen())
         return;
 
-    const QString from = fromCampus.trimmed();
-    if (from.isEmpty())
+    const QString from = fromStadium.trimmed();
+    if (from.isEmpty() ||
+        from.compare("Select an MLB Stadium", Qt::CaseInsensitive) == 0)
         return;
 
-    QSqlQuery query(QSqlDatabase::database());
+    QSqlQuery query(m_db);
+
     query.prepare(R"(
         SELECT
-            TRIM(to_campus) AS campus,
-            MIN(miles)      AS miles
-        FROM distances
-        WHERE TRIM(from_campus) = :from
-          AND TRIM(to_campus) <> :from
-          AND TRIM(to_campus) <> ''
-        GROUP BY TRIM(to_campus)
-        ORDER BY miles ASC, campus ASC
-    )");
-    query.bindValue(":from", from);
+                d."Ending Stadium" AS Stadium,
+                d."Distance" AS Distance
+        FROM MLBDistances d
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(d."Ending Stadium")
+        WHERE TRIM(d."Beginning Stadium") = TRIM(:stadium)
+            AND TRIM(d."Ending Stadium") <> TRIM(:stadium)
+            AND sa.enabled = 1
+        ORDER BY d."Distance" ASC, d."Ending Stadium" ASC
+)");
+    query.bindValue(":stadium", from);
 
     if (!query.exec())
     {
@@ -205,7 +257,8 @@ void MainWindow::loadDistancesForCampus(const QString &fromCampus)
         return;
     }
 
-    m_distanceModel->setQuery(std::move(query));
+    m_distanceModel->setQuery(query);
+
     if (m_distanceModel->lastError().isValid())
     {
         QMessageBox::critical(this, "Model Error",
@@ -213,65 +266,955 @@ void MainWindow::loadDistancesForCampus(const QString &fromCampus)
         return;
     }
 
-    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Campus");
-    m_distanceModel->setHeaderData(1, Qt::Horizontal, QString("Miles from %1").arg(from));
-    m_distanceTable->setModel(m_distanceModel);
-    m_distanceTable->resizeColumnsToContents();
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Stadium Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Distance (Miles)");
+
+    resizeDistanceTableColumns();
 }
 
-// ---- Slots required by mainwindow.ui connections ----
+// ------------------------------------------------------------
+// Souvenir list for each team
+// ------------------------------------------------------------
+
+void MainWindow::loadSouvenirsForTeam(const QString &Team)
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    const QString selectedTeam = Team.trimmed();
+    if (selectedTeam.isEmpty() ||
+        selectedTeam.compare("Select an MLB Team", Qt::CaseInsensitive) == 0)
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT
+            s."Name" AS souvenir,
+            s."Price" AS price
+        FROM SouvenirList s
+        JOIN MLBInformation i
+            ON TRIM(i."Team name") = TRIM(s."Team")
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE TRIM(s."Team") = TRIM(:Team)
+            AND sa.enabled = 1
+)");
+
+    query.bindValue(":Team", selectedTeam);
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Souvenir query failed:\n" + query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              "Souvenir model error:\n" + m_distanceModel->lastError().text());
+        return;
+    }
+
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Souvenir");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Price");
+
+    resizeDistanceTableColumns();
+}
+
+// ------------------------------------------------------------
+// Souvenir summary list
+// ------------------------------------------------------------
 
 void MainWindow::previewSouvenirButtonClick()
 {
-    const QString campus = ui->dropdownSouvenirPreview
-                               ? ui->dropdownSouvenirPreview->currentText().trimmed()
-                               : QString();
+    const QString Team = ui->dropdownSouvenirPreview->currentText().trimmed();
 
-    if (campus.isEmpty() || campus.startsWith("Display Souvenirs", Qt::CaseInsensitive))
+    if (Team.isEmpty() ||
+        Team.compare("Select an MLB Team", Qt::CaseInsensitive) == 0)
+    {
+        m_distanceModel->setQuery("SELECT '' AS col1, '' AS col2 WHERE 1=0", m_db);
+        m_distanceModel->setHeaderData(0, Qt::Horizontal, "");
+        m_distanceModel->setHeaderData(1, Qt::Horizontal, "");
         return;
+    }
 
-    NewWindow dlg(campus, this);
-    dlg.setModal(true);
-    dlg.exec();
+    loadSouvenirsForTeam(Team);
 }
+
+// ------------------------------------------------------------
+// Quit Program Button
+// ------------------------------------------------------------
 
 void MainWindow::cancelButtonClick()
 {
     QCoreApplication::quit();
 }
 
-// ---- Auto-connected slots from object names ----
+// ------------------------------------------------------------
+// Distance Table from Team Selected
+// ------------------------------------------------------------
 
-void MainWindow::on_submitButtonSouvenirPreview_2_clicked()
+void MainWindow::on_buttonDistancesSubmit_clicked()
 {
-    if (!m_fromCampusCombo)
+    const QString Team = ui->dropdownDistances->currentText().trimmed();
+
+    if (Team.isEmpty() ||
+        Team.compare("Select an MLB Team", Qt::CaseInsensitive) == 0)
+    {
+        m_distanceModel->setQuery("SELECT '' AS col1, '' AS col2 WHERE 1=0", m_db);
+        m_distanceModel->setHeaderData(0, Qt::Horizontal, "");
+        m_distanceModel->setHeaderData(1, Qt::Horizontal, "");
         return;
+    }
 
-    QString from = m_fromCampusCombo->currentData().toString();
-    if (from.isEmpty())
-        from = m_fromCampusCombo->currentText();
-
-    // Ignore placeholder if any
-    if (from.startsWith("Distance", Qt::CaseInsensitive))
-        return;
-
-    loadDistancesForCampus(from);
+    loadDistancesForTeam(Team);
 }
 
-void MainWindow::on_submitButtonSouvenirPreview_3_clicked()
+// ------------------------------------------------------------
+// Basic Trip Button
+// ------------------------------------------------------------
+//works up to a point
+//the stadium finding algorithm gets stuck after 13 stadiums
+//the recursive function does not account for trapping itself
+void MainWindow::on_buttonBasicTrip_clicked()
 {
-    // Basic Trip
-    auto *win = new BasicTripWindow(this);
+    /*auto *win = new BasicTripWindow(nullptr);
+    win->setAttribute(Qt::WA_DeleteOnClose);
+    win->show();
+    this->close();*/
+
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QStringList allStadiums;
+
+    QSqlQuery q(m_db);
+
+    const QString sql = R"(
+        SELECT DISTINCT TRIM(d."Beginning Stadium")
+        FROM MLBDistances d
+        JOIN stadium_access sa
+          ON TRIM(sa.stadium) = TRIM(d."Beginning Stadium")
+        WHERE sa.enabled IN (0, 1)
+          AND TRIM(d."Beginning Stadium") <> ''
+        ORDER BY TRIM(d."Beginning Stadium") ASC
+    )";
+
+    if (!q.exec(sql))
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Team list query failed:\n" +
+                                  q.lastError().text() +
+                                  "\n\nDB: " + m_db.databaseName() +
+                                  "\nSQL:\n" + sql);
+        return;
+    }
+
+    while (q.next())
+    {
+        const QString c = q.value(0).toString().trimmed();
+        if (!c.isEmpty())
+        allStadiums.push_back(c);
+    }
+    this->close();
+    tripWindow dlg("Marlins Park", allStadiums, allStadiums.size() -1, /*forceExact=*/false, nullptr, "default");
+    dlg.setModal(true);
+    dlg.exec();
+
+}
+
+// ------------------------------------------------------------
+// Custom Trip Button
+// ------------------------------------------------------------
+
+void MainWindow::on_buttonCustomTrip_clicked()
+{
+    auto *win = new CustomTripWindow(nullptr);
+    win->setAttribute(Qt::WA_DeleteOnClose);
+    win->show();
+    this->close();
+}
+
+// ------------------------------------------------------------
+// Custom Order Trip Button
+// ------------------------------------------------------------
+
+void MainWindow::on_buttonCustomOrderTrip_clicked()
+{
+    auto *win = new CustomInOrderTrip(nullptr);
+    win->setAttribute(Qt::WA_DeleteOnClose);
+    win->show();
+    this->close();
+}
+
+// ------------------------------------------------------------
+// Dijkstras Trip Button
+// ------------------------------------------------------------
+
+void MainWindow::on_buttonDijkstraTrip_clicked()
+{
+    auto *win = new DijkstraTripWindow(nullptr);
+    win->setAttribute(Qt::WA_DeleteOnClose);
+    win->show();
+    this->close();
+}
+
+// ------------------------------------------------------------
+// IDK button
+// ------------------------------------------------------------
+
+void MainWindow::on_pushButton_clicked()
+{
+    auto *win = new Login(this);
     win->setAttribute(Qt::WA_DeleteOnClose);
     win->show();
     this->hide();
 }
 
-void MainWindow::on_submitButtonSouvenirPreview_4_clicked()
+// ------------------------------------------------------------
+// Create the Dropdown List With all 30 teams
+// ------------------------------------------------------------
+
+void MainWindow::populateSouvenirTeamCombo()
 {
-    // Custom Trip
-    auto *win = new CustomTripWindow(this);
+    if (!ui->dropdownSouvenirPreview || !ui->dropdownInformation)
+        return;
+
+    ui->dropdownSouvenirPreview->clear();
+    ui->dropdownInformation->clear();
+
+    ui->dropdownSouvenirPreview->addItem("Select an MLB Team");
+    ui->dropdownInformation->addItem("Select an MLB Team");
+
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery q(m_db);
+
+    const QString sql = R"(
+        SELECT DISTINCT TRIM(i."Team name")
+        FROM MLBInformation i
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE sa.enabled = 1
+            AND TRIM(i."Team name") <> ''
+        ORDER BY TRIM(i."Team name") ASC
+)";
+
+    if (!q.exec(sql))
+    {
+        QMessageBox::warning(this, "Query Error",
+                             "Could not load enabled stadiums:\n" +
+                                 q.lastError().text() +
+                                 "\n\nDB: " + m_db.databaseName() +
+                                 "\nSQL:\n" + sql);
+        return;
+    }
+
+    while (q.next())
+    {
+        const QString Team = q.value(0).toString().trimmed();
+        if (!Team.isEmpty())
+        {
+            ui->dropdownSouvenirPreview->addItem(Team);
+            ui->dropdownInformation->addItem(Team);
+        }
+    }
+}
+
+// ------------------------------------------------------------
+// Shortest to Center Field Button
+// ------------------------------------------------------------
+
+void MainWindow::loadClosestCenterField()
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT i."Team name", i."Stadium name", i."Distance to center field"
+        FROM MLBInformation i
+        JOIN stadium_access sa
+          ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE sa.enabled = 1
+          AND i."Distance to center field" = (
+              SELECT MIN(i2."Distance to center field")
+              FROM MLBInformation i2
+              JOIN stadium_access sa2
+                ON TRIM(sa2.stadium) = TRIM(i2."Stadium name")
+              WHERE sa2.enabled = 1
+          )
+    )");
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Closest stadium query failed:\n" +
+                                  query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              m_distanceModel->lastError().text());
+        return;
+    }
+
+    // Set headers for UI table
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Team Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Stadium Name");
+    m_distanceModel->setHeaderData(2, Qt::Horizontal, "Distance to Center Field");
+
+    resizeDistanceTableColumns();
+}
+
+void MainWindow::on_ClosestCenterField_clicked()
+{
+    loadClosestCenterField();
+}
+
+// ------------------------------------------------------------
+// Sort By Name Button
+// ------------------------------------------------------------
+
+void MainWindow::sortByName()
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT i."Team name", i."Stadium name"
+        FROM MLBInformation i
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE sa.enabled = 1
+        ORDER BY i."Team name" ASC
+    )");
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Closest stadium query failed:\n" +
+                                  query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              m_distanceModel->lastError().text());
+        return;
+    }
+
+    // Set headers for UI table
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Team Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Stadium Name");
+
+    resizeDistanceTableColumns();
+}
+
+void MainWindow::on_SortByName_clicked()
+{
+    sortByName();
+}
+
+// ------------------------------------------------------------
+// Sort By Stadium Button
+// ------------------------------------------------------------
+
+void MainWindow::sortByStadium()
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT i."Team name", i."Stadium name"
+        FROM MLBInformation i
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE sa.enabled = 1
+        ORDER BY i."Stadium name" ASC
+    )");
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Closest stadium query failed:\n" +
+                                  query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              m_distanceModel->lastError().text());
+        return;
+    }
+
+    // Set headers for UI table
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Team Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Stadium Name");
+
+    resizeDistanceTableColumns();
+}
+
+void MainWindow::on_SortByStadium_clicked()
+{
+    sortByStadium();
+}
+
+// ------------------------------------------------------------
+// Display American League Button
+// ------------------------------------------------------------
+
+void MainWindow::displayALTeams()
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT i."Team name", i."Stadium name"
+        FROM MLBInformation i
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE i.League = 'American'
+            AND sa.enabled = 1
+        ORDER BY i."Team name" ASC
+    )");
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Closest stadium query failed:\n" +
+                                  query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              m_distanceModel->lastError().text());
+        return;
+    }
+
+    // Set headers for UI table
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Team Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Stadium Name");
+
+    resizeDistanceTableColumns();
+}
+
+
+void MainWindow::on_SortByAL_clicked()
+{
+    displayALTeams();
+}
+
+// ------------------------------------------------------------
+// Display National League Button
+// ------------------------------------------------------------
+
+void MainWindow::displayNLTeams()
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT i."Team name", i."Stadium name"
+        FROM MLBInformation i
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE i.League = 'National'
+            AND sa.enabled = 1
+        ORDER BY i."Stadium name" ASC
+    )");
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Closest stadium query failed:\n" +
+                                  query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              m_distanceModel->lastError().text());
+        return;
+    }
+
+    // Set headers for UI table
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Team Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Stadium Name");
+
+    resizeDistanceTableColumns();
+}
+
+void MainWindow::on_SortByNL_clicked()
+{
+    displayNLTeams();
+}
+
+// ------------------------------------------------------------
+// Sort By Topology Button
+// ------------------------------------------------------------
+
+void MainWindow::sortByTopology()
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT i."Team name", i."Stadium name", i."Ballpark typology"
+        FROM MLBInformation i
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE sa.enabled = 1
+        ORDER BY i."Ballpark typology" ASC
+    )");
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Closest stadium query failed:\n" +
+                                  query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              m_distanceModel->lastError().text());
+        return;
+    }
+
+    // Set headers for UI table
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Team Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Stadium Name");
+    m_distanceModel->setHeaderData(2, Qt::Horizontal, "Ballpark Typology");
+
+    resizeDistanceTableColumns();
+}
+
+void MainWindow::on_SortByTypology_clicked()
+{
+    sortByTopology();
+}
+
+// ------------------------------------------------------------
+// Sort By Open Roof
+// ------------------------------------------------------------
+
+void MainWindow::sortByOpenRoof()
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT i."Team name", i."Stadium name", i."Roof Type"
+        FROM MLBInformation i
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE i."Roof Type" = 'Open'
+            AND sa.enabled = 1
+        ORDER BY i."Team name" ASC
+    )");
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Closest stadium query failed:\n" +
+                                  query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              m_distanceModel->lastError().text());
+        return;
+    }
+
+    // Set headers for UI table
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Team Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Stadium Name");
+    m_distanceModel->setHeaderData(2, Qt::Horizontal, "Roof Type");
+
+    resizeDistanceTableColumns();
+}
+
+void MainWindow::on_SortByOpenRoof_clicked()
+{
+    sortByOpenRoof();
+}
+
+// ------------------------------------------------------------
+// Display All Info Button
+// ------------------------------------------------------------
+
+void MainWindow::displayAllInformation()
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT i.*
+        FROM MLBInformation i
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE sa.enabled = 1
+)");
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Closest stadium query failed:\n" +
+                                  query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              m_distanceModel->lastError().text());
+        return;
+    }
+
+    // Set headers for UI table
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Team Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Stadium Name");
+    m_distanceModel->setHeaderData(2, Qt::Horizontal, "Seating Capacity");
+    m_distanceModel->setHeaderData(3, Qt::Horizontal, "Location");
+    m_distanceModel->setHeaderData(4, Qt::Horizontal, "Playing Surface");
+    m_distanceModel->setHeaderData(5, Qt::Horizontal, "League");
+    m_distanceModel->setHeaderData(6, Qt::Horizontal, "Date Opened");
+    m_distanceModel->setHeaderData(7, Qt::Horizontal, "Distance to Center Field");
+    m_distanceModel->setHeaderData(8, Qt::Horizontal, "Ballpark Typology");
+    m_distanceModel->setHeaderData(9, Qt::Horizontal, "Roof Type");
+
+    resizeDistanceTableColumns();
+}
+
+void MainWindow::on_DisplayAll_clicked()
+{
+    displayAllInformation();
+}
+
+// ------------------------------------------------------------
+// Sort By Date Opened Button
+// ------------------------------------------------------------
+
+void MainWindow::sortByNewestOpened()
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT i."Team name", i."Stadium name", i."Date Opened"
+        FROM MLBInformation i
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE sa.enabled = 1
+        ORDER BY i."Date Opened" ASC
+    )");
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Closest stadium query failed:\n" +
+                                  query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              m_distanceModel->lastError().text());
+        return;
+    }
+
+    // Set headers for UI table
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Team Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Stadium Name");
+    m_distanceModel->setHeaderData(2, Qt::Horizontal, "Date Opened");
+
+    resizeDistanceTableColumns();
+}
+
+
+void MainWindow::on_SortByNewest_clicked()
+{
+    sortByNewestOpened();
+}
+
+// ------------------------------------------------------------
+// Sort By Smallest Capacity Button
+// ------------------------------------------------------------
+
+void MainWindow::sortBySmallestCapacity()
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT
+            "Team Name",
+            "Stadium Name",
+            "Seating Capacity"
+        FROM
+        (
+            SELECT
+                0 AS row_order,
+                i."Team name" AS "Team Name",
+                i."Stadium name" AS "Stadium Name",
+                i."Seating Capacity" AS "Seating Capacity",
+                CAST(REPLACE(i."Seating Capacity", ',', '') AS INTEGER) AS capacity_sort
+            FROM MLBInformation i
+            JOIN stadium_access sa
+              ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+            WHERE sa.enabled = 1
+
+            UNION ALL
+
+            SELECT
+                1 AS row_order,
+                'Total Capacity' AS "Team Name",
+                '' AS "Stadium Name",
+                SUM(CAST(REPLACE(i."Seating Capacity", ',', '') AS INTEGER)) AS "Seating Capacity",
+                0 AS capacity_sort
+            FROM MLBInformation i
+            JOIN stadium_access sa
+              ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+            WHERE sa.enabled = 1
+        )
+        ORDER BY row_order ASC, capacity_sort ASC;
+    )");
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Closest stadium query failed:\n" +
+                                  query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              m_distanceModel->lastError().text());
+        return;
+    }
+
+    // Set headers for UI table
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Team Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Stadium Name");
+    m_distanceModel->setHeaderData(2, Qt::Horizontal, "Seating Capacity");
+
+    resizeDistanceTableColumns();
+}
+
+void MainWindow::on_SortByCapacity_clicked()
+{
+    sortBySmallestCapacity();
+}
+
+// ------------------------------------------------------------
+// Load Furthest Center Field Button
+// ------------------------------------------------------------
+
+void MainWindow::loadFurthestCenterField()
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT i."Team name", i."Stadium name", i."Distance to center field"
+        FROM MLBInformation i
+        JOIN stadium_access sa
+          ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE sa.enabled = 1
+          AND i."Distance to center field" = (
+              SELECT MAX(i2."Distance to center field")
+              FROM MLBInformation i2
+              JOIN stadium_access sa2
+                ON TRIM(sa2.stadium) = TRIM(i2."Stadium name")
+              WHERE sa2.enabled = 1
+          )
+    )");
+
+    if (!query.exec())
+    {
+        QMessageBox::critical(this, "Query Error",
+                              "Closest stadium query failed:\n" +
+                                  query.lastError().text());
+        return;
+    }
+
+    m_distanceModel->setQuery(query);
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              m_distanceModel->lastError().text());
+        return;
+    }
+
+    // Set headers for UI table
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Team Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Stadium Name");
+    m_distanceModel->setHeaderData(2, Qt::Horizontal, "Distance to Center Field");
+
+    resizeDistanceTableColumns();
+}
+
+void MainWindow::on_FurthestCenterField_clicked()
+{
+    loadFurthestCenterField();
+}
+
+//Opens SpecialAlgorithms window
+void MainWindow::on_buttonSpecAlgorithms_clicked()
+{
+    auto *win = new SearchAlgorithms(nullptr);
     win->setAttribute(Qt::WA_DeleteOnClose);
     win->show();
-    this->hide();
+    this->close();
+}
+
+
+// ------------------------------------------------------------
+// Display Info of One team
+// ------------------------------------------------------------
+void MainWindow::infoDropdown(const QString &team)
+{
+    if (!m_distanceTable || !m_distanceModel)
+        return;
+    if (!m_db.isOpen() && !ensureDbOpen())
+        return;
+
+    QSqlQuery query(m_db);
+
+    query.prepare(R"(
+        SELECT i.*
+        FROM MLBInformation i
+        JOIN stadium_access sa
+            ON TRIM(sa.stadium) = TRIM(i."Stadium name")
+        WHERE TRIM(i."Team name") = TRIM(:team)
+            AND sa.enabled = 1
+)");
+
+    query.bindValue(":team", team);
+
+    query.exec();
+
+    m_distanceModel->setQuery(std::move(query));
+
+    if (m_distanceModel->lastError().isValid())
+    {
+        QMessageBox::critical(this, "Model Error",
+                              m_distanceModel->lastError().text());
+        return;
+    }
+
+    // Set headers for UI table
+    m_distanceModel->setHeaderData(0, Qt::Horizontal, "Team Name");
+    m_distanceModel->setHeaderData(1, Qt::Horizontal, "Stadium Name");
+    m_distanceModel->setHeaderData(2, Qt::Horizontal, "Seating Capacity");
+    m_distanceModel->setHeaderData(3, Qt::Horizontal, "Location");
+    m_distanceModel->setHeaderData(4, Qt::Horizontal, "Playing Surface");
+    m_distanceModel->setHeaderData(5, Qt::Horizontal, "League");
+    m_distanceModel->setHeaderData(6, Qt::Horizontal, "Date Opened");
+    m_distanceModel->setHeaderData(7, Qt::Horizontal, "Distance to Center Field");
+    m_distanceModel->setHeaderData(8, Qt::Horizontal, "Ballpark Typology");
+    m_distanceModel->setHeaderData(9, Qt::Horizontal, "Roof Type");
+
+    resizeDistanceTableColumns();
+}
+
+void MainWindow::on_buttonInfoSubmit_clicked()
+{
+    const QString Team = ui->dropdownInformation->currentText().trimmed();
+
+    if (Team.isEmpty() ||
+        Team.compare("Select an MLB Team", Qt::CaseInsensitive) == 0)
+    {
+        m_distanceModel->setQuery("SELECT '' AS col1, '' AS col2 WHERE 1=0", m_db);
+        m_distanceModel->setHeaderData(0, Qt::Horizontal, "");
+        m_distanceModel->setHeaderData(1, Qt::Horizontal, "");
+        return;
+    }
+
+    infoDropdown(Team);
 }

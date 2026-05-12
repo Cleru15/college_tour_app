@@ -1,0 +1,52 @@
+/* overall window background */
+QMainWindow {
+    background-color: #c1e1ec;
+    border: 2px solid #fdbe57;
+}
+QPushButton {
+    background-color: #add8e6;
+    color: black;
+    border: 2px solid #fdbe57;
+    border-radius: 10px;
+    padding: 2px 2px;
+}
+
+QDialog {
+    background-color: #c1e1ec;
+    color: black;
+    border: 2px solid #fdbe57;
+    border-radius: 0px;
+    padding: 4px 4px;
+}
+
+QComboBox {
+    background-color: #add8e6;
+    color: black;
+    border: 2px solid #fdbe57;
+    border-radius: 0px;
+    padding: 2px 2px;
+}
+
+QListView {
+    background-color: #ffffff;
+    alternate-background-color: #ffffff;
+    color: black;
+    border: 2px solid #fdbe57;
+    border-radius: 2px;
+    padding: 4px 4px;
+}
+
+QTableView {
+    background-color: #ffffff;
+    alternate-background-color: #ffffff;
+    color: black;
+    border: 2px solid #fdbe57;
+    border-radius: 0px;
+    padding: 2px 2px;
+}
+QTableView::item:hover { background: #86c5da; }
+QListView::item:hover { background: #86c5da; }
+QComboBox:hover { background-color: #86c5da }
+QPushButton:hover { background-color: #86c5da; }
+QPushButton:pressed { background-color: #d4ebf2; }
+

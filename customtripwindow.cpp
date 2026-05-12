@@ -1,18 +1,6 @@
 #include "customtripwindow.h"
 #include "ui_customtripwindow.h"
 
-#include "tripwindow.h"
-
-#include <QCoreApplication>
-#include <QDir>
-#include <QFileInfo>
-#include <QMessageBox>
-#include <QTableWidgetItem>
-
-#include <QSqlDatabase>
-#include <QSqlError>
-#include <QSqlQuery>
-
 CustomTripWindow::CustomTripWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::CustomTripWindow)
@@ -20,27 +8,20 @@ CustomTripWindow::CustomTripWindow(QWidget *parent)
     ui->setupUi(this);
     setWindowTitle("Custom Trip");
 
+    ui->selectStartingStadiumDropdownCT->clear();
+
     if (ensureDbOpen())
-        m_allCampuses = loadCampuses();
-    else
-    {
-        // Fall back to whatever is already in the dropdown from the .ui
-        for (int i = 0; i < ui->selectStartingCollegeDropdownCT->count(); ++i)
-            m_allCampuses << ui->selectStartingCollegeDropdownCT->itemText(i);
-    }
+        m_allStadiums = loadStadiums();
 
-    // Populate the starting dropdown
-    ui->selectStartingCollegeDropdownCT->clear();
-    for (const QString &c : m_allCampuses)
-        ui->selectStartingCollegeDropdownCT->addItem(c);
+    for (const QString &c : m_allStadiums)
+        ui->selectStartingStadiumDropdownCT->addItem(c);
 
-    const int idx = ui->selectStartingCollegeDropdownCT->findText("Saddleback College");
-    if (idx >= 0)
-        ui->selectStartingCollegeDropdownCT->setCurrentIndex(idx);
+    // No default stadium selected
+    ui->selectStartingStadiumDropdownCT->setCurrentIndex(-1);
 
     // Prep table
     ui->tableWidget->setColumnCount(1);
-    ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "Campuses");
+    ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "Stadiums");
     ui->tableWidget->horizontalHeader()->setStretchLastSection(true);
     ui->tableWidget->setRowCount(0);
 }
@@ -72,13 +53,13 @@ bool CustomTripWindow::ensureDbOpen()
     QDir d(exeDir);
     for (int i = 0; i < 6; ++i)
     {
-        candidates << d.filePath("college_tour.sqlite");
+        candidates << d.filePath("BaseballDatabase.sqlite");
         if (!d.cdUp())
             break;
     }
 
     // Also try current working directory (Qt Creator often sets this to the build folder)
-    candidates << QDir::current().filePath("college_tour.sqlite");
+    candidates << QDir::current().filePath("BaseballDatabase.sqlite");
 
 QString dbPath;
     for (const QString &p : candidates)
@@ -96,46 +77,60 @@ QString dbPath;
     return db.open();
 }
 
-QStringList CustomTripWindow::loadCampuses()
+QStringList CustomTripWindow::loadStadiums()
 {
-    QStringList campuses;
+    QStringList allStadiums;
 
     QSqlQuery q(QSqlDatabase::database());
+
     q.prepare(R"(
-        SELECT DISTINCT TRIM(name) AS campus
-        FROM (
-            SELECT from_campus AS name FROM distances
-            UNION
-            SELECT to_campus AS name FROM distances
-        )
-        WHERE TRIM(name) <> ''
-        ORDER BY TRIM(name) ASC
+        SELECT DISTINCT TRIM(sa.stadium) AS stadium
+        FROM stadium_access sa
+        WHERE sa.enabled = 1
+          AND TRIM(sa.stadium) <> ''
+          AND EXISTS (
+              SELECT 1
+              FROM MLBDistances d
+              WHERE TRIM(d."Beginning Stadium") = TRIM(sa.stadium)
+                 OR TRIM(d."Ending Stadium") = TRIM(sa.stadium)
+          )
+        ORDER BY TRIM(sa.stadium) ASC
     )");
 
     if (!q.exec())
-        return campuses;
+    {
+        QMessageBox::warning(this, "Query Error",
+                             "Could not load enabled stadium list:\n" +
+                                 q.lastError().text());
+        return allStadiums;
+    }
 
     while (q.next())
     {
-        const QString c = q.value(0).toString().trimmed();
-        if (!c.isEmpty())
-            campuses << c;
+        const QString stadium = q.value(0).toString().trimmed();
+
+        if (!stadium.isEmpty())
+            allStadiums << stadium;
     }
-    return campuses;
+
+    return allStadiums;
 }
 
 void CustomTripWindow::on_confirmButtonCT_clicked()
 {
-    m_startLocked = ui->selectStartingCollegeDropdownCT->currentText().trimmed();
+    m_startLocked = ui->selectStartingStadiumDropdownCT->currentText().trimmed();
     if (m_startLocked.isEmpty())
+    {
+        QMessageBox::information(this, "Select Start",
+                                 "Please select a starting stadium first.");
         return;
+    }
 
-    ui->selectStartingCollegeDropdownCT->setEnabled(false);
+    ui->selectStartingStadiumDropdownCT->setEnabled(false);
     ui->confirmButtonCT->setEnabled(false);
 
-    // Build checklist of remaining campuses
     QStringList remaining;
-    for (const QString &c : m_allCampuses)
+    for (const QString &c : m_allStadiums)
     {
         if (c.compare(m_startLocked, Qt::CaseInsensitive) != 0)
             remaining << c;
@@ -159,7 +154,7 @@ void CustomTripWindow::on_startTripButtonCT_clicked()
     if (m_startLocked.isEmpty())
     {
         QMessageBox::information(this, "Select Start",
-                                 "Click Confirm to lock in your starting college first.");
+                                 "Click Confirm to lock in your starting stadium first.");
         return;
     }
 
@@ -175,18 +170,28 @@ void CustomTripWindow::on_startTripButtonCT_clicked()
 
     if (selected.size() <= 1)
     {
-        QMessageBox::information(this, "No Campuses Selected",
-                                 "Select at least one campus to visit in your custom trip.");
+        QMessageBox::information(this, "No Stadiums Selected",
+                                 "Select at least one stadium to visit in your custom trip.");
         return;
     }
 
-    // Close this setup window so TripWindow is the only one open.
-    this->close();
+    // Hide this setup window so TripWindow is the only one open.
+    this->hide();
 
-    tripWindow dlg(m_startLocked, selected, selected.size(), /*forceExact=*/true, nullptr);
+    //tripWindow dlg(m_startLocked, selected, selected.size(), /*forceExact=*/true, nullptr);
+    tripWindow dlg(m_startLocked, selected, selected.size(), /*forceExact=*/false, nullptr, "custom");
     dlg.setModal(true);
     dlg.exec();
 
-    if (parentWidget())
-        parentWidget()->show();
+    // Close the setup window once TripWindow is done
+    this->close();
+}
+
+void CustomTripWindow::on_backButtCT_clicked()
+{
+    MainWindow *mainWin = new MainWindow(nullptr);
+    mainWin->setAttribute(Qt::WA_DeleteOnClose);
+    mainWin->show();
+
+    this->close();
 }

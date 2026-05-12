@@ -1,14 +1,19 @@
-#include "mainwindow.h"
-#include "newwindow.h"
-
 #include <QApplication>
+#include <QFile>
 
-// Creates the Qt app, shows the main window, and starts the event loop.
-//test comment
+#include "login.h"
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MainWindow w;
+
+    QFile file("C:/Users/l4syt/OneDrive/Documents/QtProjects/Project2take2/style.qss");
+    if (file.open(QFile::ReadOnly)) {
+        QString styleSheet = QLatin1String(file.readAll());
+        a.setStyleSheet(styleSheet);
+        file.close();
+    }
+    Login w;
     w.show();
     return a.exec();
 }

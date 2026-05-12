@@ -1,17 +1,6 @@
 #include "basictripwindow.h"
 #include "ui_basictripwindow.h"
 
-#include "tripwindow.h"
-
-#include <QCoreApplication>
-#include <QDir>
-#include <QFileInfo>
-#include <QMessageBox>
-
-#include <QSqlDatabase>
-#include <QSqlError>
-#include <QSqlQuery>
-
 BasicTripWindow::BasicTripWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::BasicTripWindow)
@@ -20,14 +9,13 @@ BasicTripWindow::BasicTripWindow(QWidget *parent)
     setWindowTitle("Basic Trip");
 
     if (ensureDbOpen())
-        loadCampusesFromDb();
+        loadStadiumsFromDb();
 
-    rebuildNumDropdown(ui->selectStartingCollegeDropdownBT->count());
+    // Number of visitable stadiums after choosing a starting stadium
+    rebuildNumDropdown(ui->selectStartingStadiumDropdownBT->count() - 1);
 
-    // Default selection
-    const int idx = ui->selectStartingCollegeDropdownBT->findText("Saddleback College");
-    if (idx >= 0)
-        ui->selectStartingCollegeDropdownBT->setCurrentIndex(idx);
+    // No default stadium selected
+    ui->selectStartingStadiumDropdownBT->setCurrentIndex(-1);
 }
 
 BasicTripWindow::~BasicTripWindow()
@@ -57,13 +45,13 @@ bool BasicTripWindow::ensureDbOpen()
     QDir d(exeDir);
     for (int i = 0; i < 6; ++i)
     {
-        candidates << d.filePath("college_tour.sqlite");
+        candidates << d.filePath("stadium_tour.sqlite");
         if (!d.cdUp())
             break;
     }
 
     // Also try current working directory (Qt Creator often sets this to the build folder)
-    candidates << QDir::current().filePath("college_tour.sqlite");
+    candidates << QDir::current().filePath("stadium_tour.sqlite");
 
 QString dbPath;
     for (const QString &p : candidates)
@@ -81,20 +69,17 @@ QString dbPath;
     return db.open();
 }
 
-void BasicTripWindow::loadCampusesFromDb()
+void BasicTripWindow::loadStadiumsFromDb()
 {
-    ui->selectStartingCollegeDropdownBT->clear();
+    ui->selectStartingStadiumDropdownBT->clear();
 
     QSqlQuery q(QSqlDatabase::database());
     q.prepare(R"(
-        SELECT DISTINCT TRIM(name) AS campus
-        FROM (
-            SELECT from_campus AS name FROM distances
-            UNION
-            SELECT to_campus AS name FROM distances
-        )
-        WHERE TRIM(name) <> ''
-        ORDER BY TRIM(name) ASC
+        SELECT campus
+        FROM campus_access
+        WHERE enabled = 1
+            AND TRIM(campus) <> ''
+        ORDER BY campus ASC
     )");
 
     if (!q.exec())
@@ -108,41 +93,56 @@ void BasicTripWindow::loadCampusesFromDb()
     {
         const QString c = q.value(0).toString().trimmed();
         if (!c.isEmpty())
-            ui->selectStartingCollegeDropdownBT->addItem(c);
+            ui->selectStartingStadiumDropdownBT->addItem(c);
     }
 }
 
 void BasicTripWindow::rebuildNumDropdown(int campusCount)
 {
-    ui->numCollegestoVisitDropdownBT->clear();
+    ui->numStadiumstoVisitDropdownBT->clear();
 
-    if (campusCount <= 0)
-        campusCount = 1;
+    // campusCount = how many OTHER stadiums can still be visited
+    if (campusCount < 0)
+        campusCount = 0;
 
-    for (int i = 1; i <= campusCount; ++i)
-        ui->numCollegestoVisitDropdownBT->addItem(QString::number(i));
+    ui->numStadiumstoVisitDropdownBT->setEnabled(true);
+
+    // Allow visiting zero additional stadiums
+    for (int i = 0; i <= campusCount; ++i)
+        ui->numStadiumstoVisitDropdownBT->addItem(QString::number(i));
 }
 
 void BasicTripWindow::on_startTripButtonBT_clicked()
 {
-    const QString start = ui->selectStartingCollegeDropdownBT->currentText().trimmed();
-    const int maxStops = ui->numCollegestoVisitDropdownBT->currentText().toInt();
+    const QString start = ui->selectStartingStadiumDropdownBT->currentText().trimmed();
+    const int maxStops = ui->numStadiumstoVisitDropdownBT->currentText().toInt();
 
     if (start.isEmpty())
+    {
+        QMessageBox::information(this, "Select Start",
+                                 "Please select a starting stadium.");
         return;
+    }
 
-    QStringList campuses;
-    for (int i = 0; i < ui->selectStartingCollegeDropdownBT->count(); ++i)
-        campuses << ui->selectStartingCollegeDropdownBT->itemText(i);
+    QStringList stadiums;
+    for (int i = 0; i < ui->selectStartingStadiumDropdownBT->count(); ++i)
+        stadiums << ui->selectStartingStadiumDropdownBT->itemText(i);
 
-    // Close this setup window so TripWindow is the only one open.
     this->close();
 
-    tripWindow dlg(start, campuses, maxStops, /*forceExact=*/false, nullptr);
+    tripWindow dlg(start, stadiums, maxStops, /*forceExact=*/false, nullptr);
     dlg.setModal(true);
     dlg.exec();
 
-    // Return to main window after trip finishes.
     if (parentWidget())
         parentWidget()->show();
+}
+
+void BasicTripWindow::on_backButtonBT_clicked()
+{
+    MainWindow *mainWin = new MainWindow(nullptr);
+    mainWin->setAttribute(Qt::WA_DeleteOnClose);
+    mainWin->show();
+
+    this->close();
 }

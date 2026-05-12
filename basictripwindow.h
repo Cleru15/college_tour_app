@@ -1,7 +1,19 @@
 #ifndef BASICTRIPWINDOW_H
 #define BASICTRIPWINDOW_H
 
-#include <QMainWindow>
+#include "tripwindow.h"
+#include "mainwindow.h"
+
+//#include <QMainWindow>
+
+//#include <QCoreApplication>
+//#include <QDir>
+//#include <QFileInfo>
+//#include <QMessageBox>
+
+//#include <QSqlDatabase>
+//#include <QSqlError>
+//#include <QSqlQuery>
 
 #include <vector>
 
@@ -19,13 +31,14 @@ public:
 
 private slots:
     void on_startTripButtonBT_clicked();
+    void on_backButtonBT_clicked();   // add this
 
 private:
     Ui::BasicTripWindow *ui;
 
     bool ensureDbOpen();
-    void loadCampusesFromDb();
-    void rebuildNumDropdown(int campusCount);
+    void loadStadiumsFromDb();
+    void rebuildNumDropdown(int stadiumCount);
 };
 
 #endif // BASICTRIPWINDOW_H

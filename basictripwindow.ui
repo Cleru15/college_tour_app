@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>954</width>
-    <height>625</height>
+    <width>240</width>
+    <height>340</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>190</y>
+      <y>210</y>
       <width>80</width>
       <height>25</height>
      </rect>
@@ -27,53 +27,89 @@
      <string>Start Trip</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="numCollegestoVisitDropdownBT">
+   <widget class="QComboBox" name="numStadiumstoVisitDropdownBT">
     <property name="geometry">
      <rect>
       <x>45</x>
-      <y>140</y>
+      <y>160</y>
       <width>150</width>
       <height>25</height>
      </rect>
     </property>
    </widget>
-   <widget class="QComboBox" name="selectStartingCollegeDropdownBT">
+   <widget class="QComboBox" name="selectStartingStadiumDropdownBT">
     <property name="geometry">
      <rect>
       <x>45</x>
-      <y>70</y>
+      <y>90</y>
       <width>161</width>
       <height>25</height>
      </rect>
     </property>
    </widget>
-   <widget class="QLabel" name="selectStartingCollegeLabelBT">
+   <widget class="QLabel" name="selectStartingStadiumLabelBT">
     <property name="geometry">
      <rect>
       <x>45</x>
-      <y>50</y>
+      <y>70</y>
       <width>171</width>
       <height>16</height>
      </rect>
     </property>
     <property name="text">
-     <string>Select Starting College:</string>
+     <string>Select Starting Stadium:</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignmentFlag::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="numCollegestoVisitLabelBT">
+   <widget class="QLabel" name="numStadiumstoVisitLabelBT">
     <property name="geometry">
      <rect>
-      <x>45</x>
-      <y>120</y>
+      <x>20</x>
+      <y>140</y>
       <width>191</width>
       <height>20</height>
      </rect>
     </property>
     <property name="text">
-     <string>Number of Colleges to Visit:</string>
+     <string>Number of Other Stadiums to Visit:</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="backButtonBT">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>250</y>
+      <width>80</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Back</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="titleBT">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>211</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+      <italic>true</italic>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Plan a Basic Tour</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -85,8 +121,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>954</width>
-     <height>25</height>
+     <width>240</width>
+     <height>18</height>
     </rect>
    </property>
   </widget>
