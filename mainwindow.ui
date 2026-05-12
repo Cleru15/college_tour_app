@@ -6,8 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
+<<<<<<< HEAD
     <width>1163</width>
     <height>716</height>
+=======
+    <width>1115</width>
+    <height>498</height>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +25,11 @@
       <x>10</x>
       <y>30</y>
       <width>190</width>
+<<<<<<< HEAD
       <height>30</height>
+=======
+      <height>41</height>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      </rect>
     </property>
     <property name="editable">
@@ -28,7 +37,11 @@
     </property>
     <item>
      <property name="text">
+<<<<<<< HEAD
       <string>Select an MLB Team</string>
+=======
+      <string>Select a College</string>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      </property>
     </item>
    </widget>
@@ -36,9 +49,15 @@
     <property name="geometry">
      <rect>
       <x>10</x>
+<<<<<<< HEAD
       <y>60</y>
       <width>191</width>
       <height>25</height>
+=======
+      <y>80</y>
+      <width>191</width>
+      <height>32</height>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      </rect>
     </property>
     <property name="text">
@@ -48,8 +67,13 @@
    <widget class="QPushButton" name="buttonSouvenirCancel">
     <property name="geometry">
      <rect>
+<<<<<<< HEAD
       <x>950</x>
       <y>580</y>
+=======
+      <x>20</x>
+      <y>370</y>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
       <width>81</width>
       <height>31</height>
      </rect>
@@ -63,6 +87,7 @@
      <rect>
       <x>260</x>
       <y>30</y>
+<<<<<<< HEAD
       <width>671</width>
       <height>581</height>
      </rect>
@@ -75,14 +100,26 @@
     border-radius: 0px;
     padding: 2px 2px;</string>
     </property>
+=======
+      <width>541</width>
+      <height>410</height>
+     </rect>
+    </property>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
    </widget>
    <widget class="QPushButton" name="buttonDistancesSubmit">
     <property name="geometry">
      <rect>
       <x>10</x>
+<<<<<<< HEAD
       <y>140</y>
       <width>191</width>
       <height>25</height>
+=======
+      <y>200</y>
+      <width>191</width>
+      <height>32</height>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      </rect>
     </property>
     <property name="text">
@@ -93,9 +130,15 @@
     <property name="geometry">
      <rect>
       <x>10</x>
+<<<<<<< HEAD
       <y>110</y>
       <width>190</width>
       <height>30</height>
+=======
+      <y>150</y>
+      <width>190</width>
+      <height>41</height>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      </rect>
     </property>
     <property name="editable">
@@ -103,14 +146,22 @@
     </property>
     <item>
      <property name="text">
+<<<<<<< HEAD
       <string>Select an MLB Team</string>
+=======
+      <string>Select a College</string>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      </property>
     </item>
    </widget>
    <widget class="QLabel" name="labelTrip">
     <property name="geometry">
      <rect>
+<<<<<<< HEAD
       <x>950</x>
+=======
+      <x>840</x>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
       <y>30</y>
       <width>91</width>
       <height>20</height>
@@ -128,20 +179,32 @@
    <widget class="QPushButton" name="buttonBasicTrip">
     <property name="geometry">
      <rect>
+<<<<<<< HEAD
       <x>950</x>
+=======
+      <x>840</x>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
       <y>60</y>
       <width>191</width>
       <height>32</height>
      </rect>
     </property>
     <property name="text">
+<<<<<<< HEAD
      <string>From Marlins Park</string>
+=======
+     <string>Basic Trip</string>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
     </property>
    </widget>
    <widget class="QPushButton" name="buttonCustomTrip">
     <property name="geometry">
      <rect>
+<<<<<<< HEAD
       <x>950</x>
+=======
+      <x>840</x>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
       <y>110</y>
       <width>191</width>
       <height>32</height>
@@ -154,8 +217,13 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
+<<<<<<< HEAD
       <x>1040</x>
       <y>580</y>
+=======
+      <x>20</x>
+      <y>410</y>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
       <width>81</width>
       <height>31</height>
      </rect>
@@ -169,7 +237,11 @@
      <rect>
       <x>10</x>
       <y>10</y>
+<<<<<<< HEAD
       <width>261</width>
+=======
+      <width>231</width>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
       <height>16</height>
      </rect>
     </property>
@@ -179,14 +251,22 @@
      </font>
     </property>
     <property name="text">
+<<<<<<< HEAD
      <string>Select a MLB Team to Display Souvenirs</string>
+=======
+     <string>Select a College to Display Souvenirs</string>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
     </property>
    </widget>
    <widget class="QLabel" name="labelDistances">
     <property name="geometry">
      <rect>
       <x>10</x>
+<<<<<<< HEAD
       <y>90</y>
+=======
+      <y>130</y>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
       <width>241</width>
       <height>16</height>
      </rect>
@@ -197,6 +277,7 @@
      </font>
     </property>
     <property name="text">
+<<<<<<< HEAD
      <string>Display Distances from a MLB Team:</string>
     </property>
    </widget>
@@ -431,13 +512,22 @@
      </property>
     </item>
    </widget>
+=======
+     <string>Display Distances from a Select College:</string>
+    </property>
+   </widget>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
+<<<<<<< HEAD
      <width>1163</width>
+=======
+     <width>1115</width>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      <height>21</height>
     </rect>
    </property>

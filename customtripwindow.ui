@@ -6,8 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
+<<<<<<< HEAD
     <width>330</width>
     <height>530</height>
+=======
+    <width>343</width>
+    <height>536</height>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
    </rect>
   </property>
   <property name="windowTitle">
@@ -99,7 +104,11 @@
      </rect>
     </property>
     <property name="text">
+<<<<<<< HEAD
      <string>Select a Starting Stadium</string>
+=======
+     <string>Select a Starting College</string>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
     </property>
     <property name="alignment">
      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -108,7 +117,11 @@
    <widget class="QLabel" name="titleCT">
     <property name="geometry">
      <rect>
+<<<<<<< HEAD
       <x>60</x>
+=======
+      <x>50</x>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
       <y>10</y>
       <width>211</width>
       <height>31</height>
@@ -134,7 +147,11 @@
     <rect>
      <x>0</x>
      <y>0</y>
+<<<<<<< HEAD
      <width>330</width>
+=======
+     <width>343</width>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      <height>21</height>
     </rect>
    </property>

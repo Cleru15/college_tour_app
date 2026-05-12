@@ -44,7 +44,11 @@
     </rect>
    </property>
    <property name="text">
+<<<<<<< HEAD
     <string>Check all the souvenirs you want users to be able to purchase:</string>
+=======
+    <string>Check all the souvenirs you want students to be able to purchase:</string>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
    </property>
   </widget>
   <widget class="QPushButton" name="SuvModifybutton">
@@ -81,12 +85,20 @@
     <rect>
      <x>430</x>
      <y>340</y>
+<<<<<<< HEAD
      <width>201</width>
+=======
+     <width>191</width>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      <height>16</height>
     </rect>
    </property>
    <property name="text">
+<<<<<<< HEAD
     <string>Click Modify to save access changes:</string>
+=======
+    <string>Click Modify to save changes:</string>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
    </property>
   </widget>
   <widget class="QPushButton" name="pushButton">
@@ -139,7 +151,11 @@
    </property>
    <item>
     <property name="text">
+<<<<<<< HEAD
      <string>Select a Stadium</string>
+=======
+     <string>Select a College</string>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
     </property>
    </item>
   </widget>
@@ -160,7 +176,11 @@
     </font>
    </property>
    <property name="text">
+<<<<<<< HEAD
     <string>Select a Stadium:</string>
+=======
+    <string>Select a College:</string>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
    </property>
   </widget>
   <widget class="QPushButton" name="changePrButt">
@@ -222,6 +242,7 @@
     <string>Delete Souvenir</string>
    </property>
   </widget>
+<<<<<<< HEAD
   <widget class="QPushButton" name="SuvResetButt">
    <property name="geometry">
     <rect>
@@ -235,6 +256,8 @@
     <string>Reset Souvenirs</string>
    </property>
   </widget>
+=======
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
  </widget>
  <resources/>
  <connections/>

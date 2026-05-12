@@ -13,7 +13,11 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+<<<<<<< HEAD
   <widget class="QListView" name="listStadiums">
+=======
+  <widget class="QListView" name="listColleges">
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
    <property name="geometry">
     <rect>
      <x>290</x>
@@ -134,7 +138,11 @@
     </font>
    </property>
    <property name="text">
+<<<<<<< HEAD
     <string>These are all the Stadiums you Visited:</string>
+=======
+    <string>These are all the Colleges you Visited:</string>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
    </property>
   </widget>
   <widget class="QLabel" name="labelTitle2">

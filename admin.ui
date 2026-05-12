@@ -7,17 +7,29 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
+<<<<<<< HEAD
     <height>369</height>
+=======
+    <height>300</height>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+<<<<<<< HEAD
   <widget class="QPushButton" name="StadMod">
    <property name="geometry">
     <rect>
      <x>210</x>
      <y>150</y>
+=======
+  <widget class="QPushButton" name="ColMod">
+   <property name="geometry">
+    <rect>
+     <x>140</x>
+     <y>160</y>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      <width>81</width>
      <height>24</height>
     </rect>
@@ -29,8 +41,13 @@
   <widget class="QPushButton" name="SuvMod">
    <property name="geometry">
     <rect>
+<<<<<<< HEAD
      <x>210</x>
      <y>180</y>
+=======
+     <x>140</x>
+     <y>190</y>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      <width>81</width>
      <height>24</height>
     </rect>
@@ -43,7 +60,11 @@
    <property name="geometry">
     <rect>
      <x>20</x>
+<<<<<<< HEAD
      <y>310</y>
+=======
+     <y>260</y>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      <width>75</width>
      <height>24</height>
     </rect>
@@ -52,16 +73,26 @@
     <string>Back</string>
    </property>
   </widget>
+<<<<<<< HEAD
   <widget class="QLabel" name="labelModStadiums">
    <property name="geometry">
     <rect>
      <x>100</x>
      <y>140</y>
      <width>101</width>
+=======
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>150</y>
+     <width>91</width>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      <height>31</height>
     </rect>
    </property>
    <property name="text">
+<<<<<<< HEAD
     <string>Modify Stadiums:</string>
    </property>
   </widget>
@@ -70,6 +101,16 @@
     <rect>
      <x>100</x>
      <y>170</y>
+=======
+    <string>Modify Colleges:</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>180</y>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      <width>101</width>
      <height>41</height>
     </rect>
@@ -78,7 +119,11 @@
     <string>Modify Souvenirs:</string>
    </property>
   </widget>
+<<<<<<< HEAD
   <widget class="QLabel" name="labelTitle">
+=======
+  <widget class="QLabel" name="label_3">
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
    <property name="geometry">
     <rect>
      <x>100</x>
@@ -103,11 +148,19 @@
     <string>   WELCOME ADMIN!</string>
    </property>
   </widget>
+<<<<<<< HEAD
   <widget class="QLabel" name="labelSubtitle">
    <property name="geometry">
     <rect>
      <x>100</x>
      <y>110</y>
+=======
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>120</y>
+>>>>>>> f8aaa0a89393c209bbee31fe8a23ac118f91f9de
      <width>211</width>
      <height>21</height>
     </rect>
